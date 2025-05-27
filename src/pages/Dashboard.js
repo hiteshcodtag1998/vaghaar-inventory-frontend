@@ -35,6 +35,7 @@ export const data = {
 };
 
 function Dashboard() {
+  console.log("Dashboard");
   const [saleAmount, setSaleAmount] = useState("");
   const [purchaseAmount, setPurchaseAmount] = useState("");
   const [stores, setStores] = useState([]);
@@ -96,11 +97,9 @@ function Dashboard() {
 
   // Fetching total sales amount
   const fetchTotalSaleAmount = () => {
-    fetch(
-      `${process.env.REACT_APP_API_BASE_URL}sales/get/totalsaleamount`, {
-      headers: { role: myLoginUser?.roleID?.name }
-    }
-    )
+    fetch(`${process.env.REACT_APP_API_BASE_URL}sales/get/totalsaleamount`, {
+      headers: { role: myLoginUser?.roleID?.name },
+    })
       .then((response) => response.json())
       .then((datas) => setSaleAmount(datas.totalSaleAmount));
   };
@@ -108,9 +107,10 @@ function Dashboard() {
   // Fetching total purchase amount
   const fetchTotalPurchaseAmount = () => {
     fetch(
-      `${process.env.REACT_APP_API_BASE_URL}purchase/get/totalpurchaseamount`, {
-      headers: { role: myLoginUser?.roleID?.name }
-    }
+      `${process.env.REACT_APP_API_BASE_URL}purchase/get/totalpurchaseamount`,
+      {
+        headers: { role: myLoginUser?.roleID?.name },
+      }
     )
       .then((response) => response.json())
       .then((datas) => setPurchaseAmount(datas.totalPurchaseAmount));
@@ -119,7 +119,7 @@ function Dashboard() {
   // Fetching all stores data
   const fetchStoresData = () => {
     fetch(`${process.env.REACT_APP_API_BASE_URL}warehouse/get`, {
-      headers: { role: myLoginUser?.roleID?.name }
+      headers: { role: myLoginUser?.roleID?.name },
     })
       .then((response) => response.json())
       .then((datas) => setStores(datas));
@@ -128,21 +128,31 @@ function Dashboard() {
   // Fetching Data of All Products
   const fetchProductsData = () => {
     fetch(`${process.env.REACT_APP_API_BASE_URL}product/get`, {
-      headers: { role: myLoginUser?.roleID?.name }
+      headers: { role: myLoginUser?.roleID?.name },
     })
       .then((response) => response.json())
       .then((datas) => setProducts(datas))
-      .catch((err) => toastMessage(err?.message || "Something goes wrong", TOAST_TYPE.TYPE_ERROR));
+      .catch((err) =>
+        toastMessage(
+          err?.message || "Something goes wrong",
+          TOAST_TYPE.TYPE_ERROR
+        )
+      );
   };
 
   // Fetching Monthly Sales
   const fetchMonthlySalesData = () => {
     fetch(`${process.env.REACT_APP_API_BASE_URL}sales/getmonthly`, {
-      headers: { role: myLoginUser?.roleID?.name }
+      headers: { role: myLoginUser?.roleID?.name },
     })
       .then((response) => response.json())
       .then((datas) => updateChartData(datas.salesAmount))
-      .catch((err) => toastMessage(err?.message || "Something goes wrong", TOAST_TYPE.TYPE_ERROR));
+      .catch((err) =>
+        toastMessage(
+          err?.message || "Something goes wrong",
+          TOAST_TYPE.TYPE_ERROR
+        )
+      );
   };
 
   return (

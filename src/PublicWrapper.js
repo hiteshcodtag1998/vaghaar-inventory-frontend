@@ -2,14 +2,14 @@ import React, { useContext } from "react";
 import { Navigate, Outlet } from "react-router-dom";
 import AuthContext from "./AuthContext";
 
-const ProtectedWrapper = () => {
+const PublicWrapper = () => {
   const { user } = useContext(AuthContext);
 
-  if (!user) {
-    return <Navigate to="/login" replace />;
+  if (user) {
+    return <Navigate to="/" replace />;
   }
 
   return <Outlet />;
 };
 
-export default ProtectedWrapper;
+export default PublicWrapper;

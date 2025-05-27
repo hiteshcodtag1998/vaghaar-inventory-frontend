@@ -15,8 +15,7 @@ function Store() {
   }, [added === true]);
 
   useEffect(() => {
-    if (!showModal)
-      setAdded(false)
+    if (!showModal) setAdded(false);
   }, [showModal]);
 
   // Fetching all stores data
@@ -45,15 +44,13 @@ function Store() {
           </button>
         </div>
         {showModal && <AddStore setAdded={setAdded} />}
-        {
-          stores?.length === 0 && <div
-            className="bg-white w-50 h-fit flex flex-col gap-4 p-4 "
-          >
+        {stores?.length === 0 && (
+          <div className="bg-white w-50 h-fit flex flex-col gap-4 p-4 ">
             <div className="flex flex-col gap-3 justify-between items-start">
               <span>No data found</span>
             </div>
           </div>
-        }
+        )}
         {stores.map((element, index) => {
           return (
             <div
@@ -61,14 +58,13 @@ function Store() {
               key={element._id}
             >
               <div>
-                {
-                  element?.image && <img
+                {element?.image && (
+                  <img
                     alt="store"
                     className="h-60 w-full object-cover"
                     src={element.image}
                   />
-                }
-
+                )}
               </div>
               <div className="flex flex-col gap-3 justify-between items-start">
                 <span className="font-bold">{element.name}</span>

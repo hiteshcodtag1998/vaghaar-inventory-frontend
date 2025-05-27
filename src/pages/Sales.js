@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useContext } from "react";
-import axios from 'axios'
+import axios from "axios";
 import AddSale from "../components/AddSale";
 import AuthContext from "../AuthContext";
 import { toastMessage } from "../utils/handler";
@@ -9,7 +9,7 @@ import { CircularProgress, Tooltip } from "@mui/material";
 import UpdateSale from "../components/UpdateSale";
 import { MdDeleteForever, MdEdit } from "react-icons/md";
 // import moment from "moment";
-import moment from 'moment-timezone';
+import moment from "moment-timezone";
 import ConfirmationDialog from "../components/ConfirmationDialog";
 
 function Sales() {
@@ -40,43 +40,58 @@ function Sales() {
   // Fetching Data of All Sales
   const fetchSalesData = () => {
     fetch(`${process.env.REACT_APP_API_BASE_URL}sales/get`, {
-      headers: { role: myLoginUser?.roleID?.name, requestBy: myLoginUser?._id, }
+      headers: { role: myLoginUser?.roleID?.name, requestBy: myLoginUser?._id },
     })
       .then((response) => response.json())
       .then((data) => {
         setAllSalesData(data);
       })
-      .catch((err) => toastMessage(err?.message || "Something goes wrong", TOAST_TYPE.TYPE_ERROR));
+      .catch((err) =>
+        toastMessage(
+          err?.message || "Something goes wrong",
+          TOAST_TYPE.TYPE_ERROR
+        )
+      );
   };
 
   // Fetching Data of All Products
   const fetchProductsData = () => {
     fetch(`${process.env.REACT_APP_API_BASE_URL}product/get`, {
-      headers: { role: myLoginUser?.roleID?.name }
+      headers: { role: myLoginUser?.roleID?.name },
     })
       .then((response) => response.json())
       .then((data) => {
         setAllProducts(data);
       })
-      .catch((err) => toastMessage(err?.message || "Something goes wrong", TOAST_TYPE.TYPE_ERROR));
+      .catch((err) =>
+        toastMessage(
+          err?.message || "Something goes wrong",
+          TOAST_TYPE.TYPE_ERROR
+        )
+      );
   };
 
   // Fetching Data of All Brrand items
   const fetchBrandData = () => {
     fetch(`${process.env.REACT_APP_API_BASE_URL}brand/get`, {
-      headers: { role: myLoginUser?.roleID?.name }
+      headers: { role: myLoginUser?.roleID?.name },
     })
       .then((response) => response.json())
       .then((data) => {
         setAllBrands(data);
       })
-      .catch((err) => toastMessage(err?.message || "Something goes wrong", TOAST_TYPE.TYPE_ERROR));
+      .catch((err) =>
+        toastMessage(
+          err?.message || "Something goes wrong",
+          TOAST_TYPE.TYPE_ERROR
+        )
+      );
   };
 
   // Fetching Data of All Stores
   const fetchStoresData = () => {
     fetch(`${process.env.REACT_APP_API_BASE_URL}store/get`, {
-      headers: { role: myLoginUser?.roleID?.name }
+      headers: { role: myLoginUser?.roleID?.name },
     })
       .then((response) => response.json())
       .then((data) => {
@@ -87,54 +102,65 @@ function Sales() {
   // Fetching Data of All Warehouse items
   const fetchWarehouseData = () => {
     fetch(`${process.env.REACT_APP_API_BASE_URL}warehouse/get`, {
-      headers: { role: myLoginUser?.roleID?.name }
+      headers: { role: myLoginUser?.roleID?.name },
     })
       .then((response) => response.json())
       .then((data) => {
         setAllWarehouses(data);
       })
-      .catch((err) => toastMessage(err?.message || "Something goes wrong", TOAST_TYPE.TYPE_ERROR));
+      .catch((err) =>
+        toastMessage(
+          err?.message || "Something goes wrong",
+          TOAST_TYPE.TYPE_ERROR
+        )
+      );
   };
 
   const handleDownload = async (data, index) => {
     try {
       // Set the loader to true for the specific index
-      setPdfBtnLoaderIndexes(prevIndexes => {
+      setPdfBtnLoaderIndexes((prevIndexes) => {
         const newIndexes = [...prevIndexes];
         newIndexes[index] = true;
         return newIndexes;
       });
 
-      const response = await axios.post(`${process.env.REACT_APP_API_BASE_URL}sales/sale-pdf-download`, data, {
-        responseType: 'arraybuffer',
-      });
-      console.log('response', response)
+      const response = await axios.post(
+        `${process.env.REACT_APP_API_BASE_URL}sales/sale-pdf-download`,
+        data,
+        {
+          responseType: "arraybuffer",
+        }
+      );
+      console.log("response", response);
       // Assuming the server returns the PDF content as a blob
       // setPdfData(new Blob([response.data], { type: 'application/pdf' }));
 
-      const url = window.URL.createObjectURL(new Blob([response.data], { type: 'application/pdf' }));
-      const a = document.createElement('a');
+      const url = window.URL.createObjectURL(
+        new Blob([response.data], { type: "application/pdf" })
+      );
+      const a = document.createElement("a");
       a.href = url;
-      a.download = 'output.pdf';
+      a.download = "output.pdf";
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
-      window.open(url, '_blank');
-      setPdfBtnLoaderIndexes(prevIndexes => {
+      window.open(url, "_blank");
+      setPdfBtnLoaderIndexes((prevIndexes) => {
         const newIndexes = [...prevIndexes];
         newIndexes[index] = false;
         return newIndexes;
       });
       // window.URL.revokeObjectURL(url);
     } catch (error) {
-      setPdfBtnLoaderIndexes(prevIndexes => {
+      setPdfBtnLoaderIndexes((prevIndexes) => {
         const newIndexes = [...prevIndexes];
         newIndexes[index] = false;
         return newIndexes;
       });
-      console.log('Error', error)
+      console.log("Error", error);
     }
-  }
+  };
 
   // Modal for Sale Add
   const addSaleModalSetting = () => {
@@ -162,16 +188,19 @@ function Sales() {
 
   // Delete item
   const deleteItem = () => {
-    fetch(`${process.env.REACT_APP_API_BASE_URL}sales/delete/${updateSale?._id}`,
-      { method: 'delete', headers: { role: myLoginUser?.roleID?.name }, })
+    fetch(
+      `${process.env.REACT_APP_API_BASE_URL}sales/delete/${updateSale?._id}`,
+      { method: "delete", headers: { role: myLoginUser?.roleID?.name } }
+    )
       .then((response) => response.json())
       .then(() => {
-        setUpdateSale()
+        setUpdateSale();
         setUpdatePage(!updatePage);
-        handleClose()
-      }).catch(() => {
-        setUpdateSale()
-        handleClose()
+        handleClose();
+      })
+      .catch(() => {
+        setUpdateSale();
+        handleClose();
       });
   };
 
@@ -237,11 +266,12 @@ function Sales() {
                 <th className="whitespace-nowrap px-4 py-2 text-left font-medium text-gray-900">
                   Warehouse Name
                 </th>
-                {
-                  myLoginUser?.roleID?.name === ROLES.HIDE_MASTER_SUPER_ADMIN && <th className="whitespace-nowrap px-4 py-2 text-left font-medium text-gray-900">
+                {myLoginUser?.roleID?.name ===
+                  ROLES.HIDE_MASTER_SUPER_ADMIN && (
+                  <th className="whitespace-nowrap px-4 py-2 text-left font-medium text-gray-900">
                     Status
                   </th>
-                }
+                )}
                 <th className="whitespace-nowrap px-4 py-2 text-left font-medium text-gray-900">
                   Sales Date
                 </th>
@@ -255,15 +285,13 @@ function Sales() {
             </thead>
 
             <tbody className="divide-y divide-gray-200">
-              {
-                sales?.length === 0 && <div
-                  className="bg-white w-50 h-fit flex flex-col gap-4 p-4 "
-                >
+              {sales?.length === 0 && (
+                <div className="bg-white w-50 h-fit flex flex-col gap-4 p-4 ">
                   <div className="flex flex-col gap-3 justify-between items-start">
                     <span>No data found</span>
                   </div>
                 </div>
-              }
+              )}
               {sales.map((element, index) => {
                 return (
                   <tr key={element._id}>
@@ -285,17 +313,21 @@ function Sales() {
                     <td className="whitespace-nowrap px-4 py-2  text-gray-900">
                       {element?.warehouseID?.name || ""}
                     </td>
-                    {
-                      myLoginUser?.roleID?.name === ROLES.HIDE_MASTER_SUPER_ADMIN && <td className="whitespace-nowrap px-4 py-2  text-gray-900">
+                    {myLoginUser?.roleID?.name ===
+                      ROLES.HIDE_MASTER_SUPER_ADMIN && (
+                      <td className="whitespace-nowrap px-4 py-2  text-gray-900">
                         {element?.isActive ? "Availble" : "Deleted"}
                       </td>
-                    }
+                    )}
                     <td className="whitespace-nowrap px-4 py-2 text-gray-700">
-                      {new Date(element.SaleDate).toLocaleDateString() ===
+                      {
+                        new Date(element.SaleDate).toLocaleDateString() ===
                         new Date().toLocaleDateString()
-                        ? "Today"
-                        : element?.SaleDate
-                          ? moment.tz(element.SaleDate, moment.tz.guess()).format('DD-MM-YYYY HH:mm')
+                          ? "Today"
+                          : element?.SaleDate
+                          ? moment
+                              .tz(element.SaleDate, moment.tz.guess())
+                              .format("DD-MM-YYYY HH:mm")
                           : null
                         // moment(element.SaleDate, "YYYY-MM-DD HH:mm").format("DD-MM-YYYY HH:mm")
                       }
@@ -311,34 +343,40 @@ function Sales() {
                           </span>
                         </Tooltip>
                         <Tooltip title="Download Sale Note" arrow>
-                          <span
-                            className="text-green-700 px-2 flex"
-                          >
-                            {pdfBtnLoaderIndexes[index] ? <CircularProgress size={20} /> :
-                              <FaDownload className={`cursor-pointer ${pdfBtnLoaderIndexes[index] && "block"}`} onClick={() => handleDownload(element, index)} />
-                            }
+                          <span className="text-green-700 px-2 flex">
+                            {pdfBtnLoaderIndexes[index] ? (
+                              <CircularProgress size={20} />
+                            ) : (
+                              <FaDownload
+                                className={`cursor-pointer ${
+                                  pdfBtnLoaderIndexes[index] && "block"
+                                }`}
+                                onClick={() => handleDownload(element, index)}
+                              />
+                            )}
                           </span>
                         </Tooltip>
                         {/* Conditional delete button for roles */}
-                        {[ROLES.HIDE_MASTER_SUPER_ADMIN, ROLES.SUPER_ADMIN].includes(
-                          myLoginUser?.roleID?.name
-                        ) && (
-                            <Tooltip title="Delete" arrow>
-                              <span
-                                className="text-red-600 pr-2 cursor-pointer"
-                                onClick={() => {
-                                  handleClickOpen();
-                                  setUpdateSale(element);
-                                  setDialogData({
-                                    title: 'Are you sure want to delete?',
-                                    btnSecText: 'Delete',
-                                  });
-                                }}
-                              >
-                                <MdDeleteForever width={50} height={50} />
-                              </span>
-                            </Tooltip>
-                          )}
+                        {[
+                          ROLES.HIDE_MASTER_SUPER_ADMIN,
+                          ROLES.SUPER_ADMIN,
+                        ].includes(myLoginUser?.roleID?.name) && (
+                          <Tooltip title="Delete" arrow>
+                            <span
+                              className="text-red-600 pr-2 cursor-pointer"
+                              onClick={() => {
+                                handleClickOpen();
+                                setUpdateSale(element);
+                                setDialogData({
+                                  title: "Are you sure want to delete?",
+                                  btnSecText: "Delete",
+                                });
+                              }}
+                            >
+                              <MdDeleteForever width={50} height={50} />
+                            </span>
+                          </Tooltip>
+                        )}
                       </div>
                     </td>
                     {/* <td className="whitespace-nowrap px-4 py-2 text-gray-700">
@@ -357,7 +395,8 @@ function Sales() {
         btnFirstName="Cancel"
         btnSecondName={dialogData?.btnSecText || ""}
         handleClose={handleClose}
-        handleDelete={deleteItem} />
+        handleDelete={deleteItem}
+      />
     </div>
   );
 }

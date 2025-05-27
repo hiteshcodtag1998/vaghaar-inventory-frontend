@@ -5,26 +5,25 @@ import SideMenu from "./SideMenu";
 
 function Layout() {
   return (
-    <>
-      <div className="flex flex-col min-h-screen">
-        {/* Sticky Header */}
-        <div className="sticky top-0 z-50">
-          <Header />
-        </div>
-        {/* Main Content */}
-        <div className="flex flex-1 bg-gray-100">
-          {/* Sidebar */}
-          <div className="hidden lg:flex col-span-2 h-screen sticky top-0 bg-white">
-            <SideMenu />
-          </div>
-          {/* Main Outlet Content */}
-          <div className="flex-1 py-4">
-            <Outlet />
-          </div>
-        </div>
+    <div className="flex flex-col h-screen overflow-hidden">
+      {/* Sticky Header */}
+      <div className="sticky top-0 z-50">
+        <Header />
       </div>
 
-    </>
+      {/* Main Body */}
+      <div className="flex flex-1 overflow-hidden">
+        {/* Sidebar: Scrollable if content overflows */}
+        <div className="hidden lg:block w-64 bg-white border-r overflow-y-auto">
+          <SideMenu />
+        </div>
+
+        {/* Main Content: Scrolls independently */}
+        <div className="flex-1 overflow-y-auto bg-gray-100 p-4">
+          <Outlet />
+        </div>
+      </div>
+    </div>
   );
 }
 

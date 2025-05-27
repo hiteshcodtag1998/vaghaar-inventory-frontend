@@ -23,8 +23,8 @@ function Inventory() {
   const [warehouses, setAllWarehouses] = useState([]);
   const [totalCounts, setTotalCounts] = useState({
     totalProductCounts: 0,
-    totalItemInWarehouse: 0
-  })
+    totalItemInWarehouse: 0,
+  });
   const myLoginUser = JSON.parse(localStorage.getItem("user"));
 
   useEffect(() => {
@@ -38,67 +38,116 @@ function Inventory() {
   // Fetching Data of All Warehouse items
   const fetchWarehouseData = () => {
     fetch(`${process.env.REACT_APP_API_BASE_URL}warehouse/get`, {
-      headers: { role: myLoginUser?.roleID?.name, requestBy: myLoginUser?._id, }
+      headers: { role: myLoginUser?.roleID?.name, requestBy: myLoginUser?._id },
     })
       .then((response) => response.json())
       .then((data) => {
         setAllWarehouses(data);
       })
-      .catch((err) => toastMessage(err?.message || "Something goes wrong", TOAST_TYPE.TYPE_ERROR));
+      .catch((err) =>
+        toastMessage(
+          err?.message || "Something goes wrong",
+          TOAST_TYPE.TYPE_ERROR
+        )
+      );
   };
 
   // Fetching Data of All Total Counts
   const fetchTotalCountsData = (warehouse = "") => {
-    fetch(`${process.env.REACT_APP_API_BASE_URL}product/get-total-counts?selectWarehouse=${warehouse || ""}`, {
-      headers: { role: myLoginUser?.roleID?.name }
-    })
+    fetch(
+      `${
+        process.env.REACT_APP_API_BASE_URL
+      }product/get-total-counts?selectWarehouse=${warehouse || ""}`,
+      {
+        headers: { role: myLoginUser?.roleID?.name },
+      }
+    )
       .then((response) => response.json())
       .then((data) => {
         setTotalCounts(data);
       })
-      .catch((err) => toastMessage(err?.message || "Something goes wrong", TOAST_TYPE.TYPE_ERROR));
+      .catch((err) =>
+        toastMessage(
+          err?.message || "Something goes wrong",
+          TOAST_TYPE.TYPE_ERROR
+        )
+      );
   };
 
   // Fetching Data of All Products
   const fetchProductsData = () => {
     fetch(`${process.env.REACT_APP_API_BASE_URL}product/get`, {
-      headers: { role: myLoginUser?.roleID?.name }
+      headers: { role: myLoginUser?.roleID?.name },
     })
       .then((response) => response.json())
       .then((data) => {
         setAllProducts(data);
       })
-      .catch((err) => toastMessage(err?.message || "Something goes wrong", TOAST_TYPE.TYPE_ERROR));
+      .catch((err) =>
+        toastMessage(
+          err?.message || "Something goes wrong",
+          TOAST_TYPE.TYPE_ERROR
+        )
+      );
   };
 
   // Fetching Data of Search Products
   const fetchSearchData = (searchItem) => {
-    fetch(`${process.env.REACT_APP_API_BASE_URL}product/search?searchTerm=${searchItem}&selectWarehouse=${selectWarehouse || ""}`, {
-      headers: { role: myLoginUser?.roleID?.name }
-    })
+    fetch(
+      `${
+        process.env.REACT_APP_API_BASE_URL
+      }product/search?searchTerm=${searchItem}&selectWarehouse=${
+        selectWarehouse || ""
+      }`,
+      {
+        headers: { role: myLoginUser?.roleID?.name },
+      }
+    )
       .then((response) => response.json())
       .then((data) => {
         setAllProducts(data);
       })
-      .catch((err) => toastMessage(err?.message || "Something goes wrong", TOAST_TYPE.TYPE_ERROR));
+      .catch((err) =>
+        toastMessage(
+          err?.message || "Something goes wrong",
+          TOAST_TYPE.TYPE_ERROR
+        )
+      );
   };
 
   // Fetching Data of Search Products
   const fetchProductByWarehouse = (selectWarehouseVal) => {
-    fetch(`${process.env.REACT_APP_API_BASE_URL}product/search?selectWarehouse=${selectWarehouseVal}&searchTerm=${searchTerm || ''}`, {
-      headers: { role: myLoginUser?.roleID?.name }
-    })
+    fetch(
+      `${
+        process.env.REACT_APP_API_BASE_URL
+      }product/search?selectWarehouse=${selectWarehouseVal}&searchTerm=${
+        searchTerm || ""
+      }`,
+      {
+        headers: { role: myLoginUser?.roleID?.name },
+      }
+    )
       .then((response) => response.json())
       .then((data) => {
-        const updatedData = data?.map(d => {
+        const updatedData = data?.map((d) => {
           if (d?.productID) {
-            d = { ...d, name: d?.productID?.name, productCode: d?.productID?.productCode, description: d?.productID?.description }
+            d = {
+              ...d,
+              name: d?.productID?.name,
+              productCode: d?.productID?.productCode,
+              description: d?.productID?.description,
+            };
           }
           return d;
-        })
+        });
         setAllProducts(updatedData);
       })
-      .catch((err) => toastMessage(err?.message || "Something goes wrong", TOAST_TYPE.TYPE_ERROR));
+      .catch((err) =>
+        toastMessage(
+          err?.message || "Something goes wrong",
+          TOAST_TYPE.TYPE_ERROR
+        )
+      );
   };
 
   // // Fetching all stores data
@@ -121,19 +170,21 @@ function Inventory() {
     setShowUpdateModal(!showUpdateModal);
   };
 
-
   // Delete item
   const deleteItem = () => {
-    fetch(`${process.env.REACT_APP_API_BASE_URL}product/delete/${selectedProduct?._id}`,
-      { method: 'delete', headers: { role: myLoginUser?.roleID?.name }, })
+    fetch(
+      `${process.env.REACT_APP_API_BASE_URL}product/delete/${selectedProduct?._id}`,
+      { method: "delete", headers: { role: myLoginUser?.roleID?.name } }
+    )
       .then((response) => response.json())
       .then(() => {
-        setSelectedProduct()
+        setSelectedProduct();
         setUpdatePage(!updatePage);
-        handleClose()
-      }).catch(() => {
-        setSelectedProduct()
-        handleClose()
+        handleClose();
+      })
+      .catch(() => {
+        setSelectedProduct();
+        handleClose();
       });
   };
 
@@ -144,7 +195,6 @@ function Inventory() {
 
   // Handle Search Term
   const handleSearchTerm = (e) => {
-
     setSearchTerm(e.target.value);
     fetchSearchData(e.target.value);
   };
@@ -169,21 +219,26 @@ function Inventory() {
   // Fetching Data of All Brrand items
   const fetchBrandData = () => {
     fetch(`${process.env.REACT_APP_API_BASE_URL}brand/get`, {
-      headers: { role: myLoginUser?.roleID?.name }
+      headers: { role: myLoginUser?.roleID?.name },
     })
       .then((response) => response.json())
       .then((data) => {
         setAllBrands(data);
       })
-      .catch((err) => toastMessage(err?.message || "Something goes wrong", TOAST_TYPE.TYPE_ERROR));
+      .catch((err) =>
+        toastMessage(
+          err?.message || "Something goes wrong",
+          TOAST_TYPE.TYPE_ERROR
+        )
+      );
   };
 
   const clearHandleFilter = () => {
-    setSearchTerm('');
-    setSelectWarehouse('');
+    setSearchTerm("");
+    setSelectWarehouse("");
     fetchProductsData();
     fetchTotalCountsData();
-  }
+  };
 
   return (
     <div className="col-span-12 lg:col-span-10  flex justify-center">
@@ -319,10 +374,7 @@ function Inventory() {
                   className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
                   name="fromWarehouseID"
                   value={selectWarehouse}
-
-                  onChange={(e) =>
-                    handleWarehouse(e.target.value)
-                  }
+                  onChange={(e) => handleWarehouse(e.target.value)}
                 >
                   <option value="">Select Warehouse</option>
                   {warehouses.map((element, index) => {
@@ -374,12 +426,12 @@ function Inventory() {
                 {/* <th className="whitespace-nowrap px-4 py-2 text-left font-medium text-gray-900">
                   Availibility
                 </th> */}
-                {
-                  myLoginUser?.roleID?.name === ROLES.HIDE_MASTER_SUPER_ADMIN &&
+                {myLoginUser?.roleID?.name ===
+                  ROLES.HIDE_MASTER_SUPER_ADMIN && (
                   <th className="whitespace-nowrap px-4 py-2 text-left font-medium text-gray-900">
                     Hide
                   </th>
-                }
+                )}
                 <th className="whitespace-nowrap px-4 py-2 text-left font-medium text-gray-900">
                   More
                 </th>
@@ -387,15 +439,13 @@ function Inventory() {
             </thead>
 
             <tbody className="divide-y divide-gray-200">
-              {
-                products?.length === 0 && <div
-                  className="bg-white w-50 h-fit flex flex-col gap-4 p-4 "
-                >
+              {products?.length === 0 && (
+                <div className="bg-white w-50 h-fit flex flex-col gap-4 p-4 ">
                   <div className="flex flex-col gap-3 justify-between items-start">
                     <span>No data found</span>
                   </div>
                 </div>
-              }
+              )}
               {products.map((element, index) => {
                 return (
                   <tr key={index}>
@@ -403,7 +453,8 @@ function Inventory() {
                       {element?.name || element.productID.name}
                     </td>
                     <td className="whitespace-nowrap px-4 py-2 text-gray-700">
-                      {element?.productID?.BrandID?.name || element?.BrandID?.name}
+                      {element?.productID?.BrandID?.name ||
+                        element?.BrandID?.name}
                     </td>
                     <td className="whitespace-nowrap px-4 py-2  text-gray-900">
                       {element?.productCode || element.productID.productCode}
@@ -419,7 +470,8 @@ function Inventory() {
                     </td> */}
 
                     {/* First column: Hide/Show functionality, conditionally rendered */}
-                    {myLoginUser?.roleID?.name === ROLES.HIDE_MASTER_SUPER_ADMIN ? (
+                    {myLoginUser?.roleID?.name ===
+                    ROLES.HIDE_MASTER_SUPER_ADMIN ? (
                       <td className="px-4 py-2 text-gray-700 text-center">
                         {element?.isActive ? (
                           <span
@@ -428,8 +480,8 @@ function Inventory() {
                               handleClickOpen();
                               setSelectedProduct(element);
                               setDialogData({
-                                title: 'Are you sure want to hide?',
-                                btnSecText: 'Hide',
+                                title: "Are you sure want to hide?",
+                                btnSecText: "Hide",
                               });
                             }}
                           >
@@ -456,28 +508,28 @@ function Inventory() {
                         </Tooltip>
 
                         {/* Conditional delete button for roles */}
-                        {[ROLES.HIDE_MASTER_SUPER_ADMIN, ROLES.SUPER_ADMIN].includes(
-                          myLoginUser?.roleID?.name
-                        ) && (
-                            <Tooltip title="Delete" arrow>
-                              <span
-                                className="text-red-600 px-2 cursor-pointer"
-                                onClick={() => {
-                                  handleClickOpen();
-                                  setSelectedProduct(element);
-                                  setDialogData({
-                                    title: 'Are you sure want to delete?',
-                                    btnSecText: 'Delete',
-                                  });
-                                }}
-                              >
-                                <MdDeleteForever width={50} height={50} />
-                              </span>
-                            </Tooltip>
-                          )}
+                        {[
+                          ROLES.HIDE_MASTER_SUPER_ADMIN,
+                          ROLES.SUPER_ADMIN,
+                        ].includes(myLoginUser?.roleID?.name) && (
+                          <Tooltip title="Delete" arrow>
+                            <span
+                              className="text-red-600 px-2 cursor-pointer"
+                              onClick={() => {
+                                handleClickOpen();
+                                setSelectedProduct(element);
+                                setDialogData({
+                                  title: "Are you sure want to delete?",
+                                  btnSecText: "Delete",
+                                });
+                              }}
+                            >
+                              <MdDeleteForever width={50} height={50} />
+                            </span>
+                          </Tooltip>
+                        )}
                       </div>
                     </td>
-
                   </tr>
                 );
               })}
@@ -491,7 +543,8 @@ function Inventory() {
         btnFirstName="Cancel"
         btnSecondName={dialogData?.btnSecText || ""}
         handleClose={handleClose}
-        handleDelete={deleteItem} />
+        handleDelete={deleteItem}
+      />
     </div>
   );
 }
