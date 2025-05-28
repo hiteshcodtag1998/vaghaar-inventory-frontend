@@ -1,33 +1,37 @@
 // src/services/BaseService.js
+import axios from "axios";
 
 const API_BASE_URL = process.env.REACT_APP_API_BASE_URL;
 
+const axiosInstance = axios.create({
+  baseURL: API_BASE_URL,
+  withCredentials: true, // send cookies (e.g., HttpOnly JWT)
+  headers: {
+    "Content-Type": "application/json",
+  },
+});
+
 const BaseService = {
   request: async (url, method = "GET", data = null, options = {}) => {
-    const config = {
-      method,
-      headers: {
-        "Content-Type": "application/json",
-        ...options.headers,
-      },
-      credentials: "include", // Important to send cookies (JWT in HttpOnly cookie)
-    };
-
-    if (data) {
-      config.body = JSON.stringify(data);
-    }
-
     try {
-      const response = await fetch(`${API_BASE_URL}${url}`, config);
-      const result = await response.json();
+      const response = await axiosInstance({
+        url,
+        method,
+        data,
+        ...options,
+        headers: {
+          ...axiosInstance.defaults.headers,
+          ...options.headers,
+        },
+      });
 
-      if (!response.ok) {
-        throw new Error(result.message || "Something went wrong");
-      }
-
-      return result;
+      return response.data;
     } catch (error) {
-      throw error;
+      const message =
+        error?.response?.data?.message ||
+        error?.message ||
+        "Something went wrong";
+      throw new Error(message);
     }
   },
 };

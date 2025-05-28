@@ -26,16 +26,23 @@ function Register() {
     fetch(`${process.env.REACT_APP_API_BASE_URL}register`, {
       method: "POST",
       headers: {
-        "Content-type": "application/json",
+        "Content-Type": "application/json",
       },
       body: JSON.stringify(form),
     })
       .then(() => {
-        toastMessage("Successfully Registered, Now Login with your details", TOAST_TYPE.TYPE_SUCCESS)
-        navigate('/login')
-
+        toastMessage(
+          "Successfully Registered, Now Login with your details",
+          TOAST_TYPE.TYPE_SUCCESS
+        );
+        navigate("/login");
       })
-      .catch((err) => toastMessage(err?.message || "Something goes wrong", TOAST_TYPE.TYPE_ERROR));
+      .catch((err) =>
+        toastMessage(
+          err?.message || "Something goes wrong",
+          TOAST_TYPE.TYPE_ERROR
+        )
+      );
   };
   // ------------------
 
@@ -57,10 +64,9 @@ function Register() {
   //     .catch((error) => console.log(error));
   // };
 
-
   const handleSubmit = (e) => {
     e.preventDefault();
-  }
+  };
 
   return (
     <>
@@ -159,9 +165,7 @@ function Register() {
               </div>
 
               <div className="text-sm">
-                <span
-                  className="font-medium text-indigo-600 hover:text-indigo-500"
-                >
+                <span className="font-medium text-indigo-600 hover:text-indigo-500">
                   Forgot your password?
                 </span>
               </div>
@@ -183,9 +187,7 @@ function Register() {
               </button>
               <p className="mt-2 text-center text-sm text-gray-600">
                 Or{" "}
-                <span
-                  className="font-medium text-indigo-600 hover:text-indigo-500"
-                >
+                <span className="font-medium text-indigo-600 hover:text-indigo-500">
                   Already Have an Account, Please
                   <Link to="/login"> Signin now </Link>
                 </span>

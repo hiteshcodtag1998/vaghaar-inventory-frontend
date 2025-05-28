@@ -5,10 +5,10 @@ import { toastMessage } from "../utils/handler";
 import { ROLES, TOAST_TYPE } from "../utils/constant";
 import { Button } from "@mui/material";
 import AddBrand from "./AddBrand";
-import DatePicker from 'react-datepicker';
-import 'react-datepicker/dist/react-datepicker.css';
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
 import moment from "moment";
-import axios from 'axios'
+import axios from "axios";
 
 export default function AddSale({
   addSaleModalSetting,
@@ -17,11 +17,11 @@ export default function AddSale({
   handlePageUpdate,
   authContext,
   brands,
-  warehouses
+  warehouses,
 }) {
   const [sale, setSale] = useState([
     {
-      userID: authContext.user,
+      userID: authContext.user?._id,
       productID: "",
       // purchaseID: "",
       // purchaseOptions: [], // Holds fetched purchase data for this entry
@@ -39,86 +39,97 @@ export default function AddSale({
   const [pdfOpen, setPdfOpen] = useState(false);
   const [purchaseData, setAllPurchaseData] = useState([]);
 
-
-
   // Fetching Data of Purchase items
   const fetchPurchaseData = () => {
-    fetch(`${process.env.REACT_APP_API_BASE_URL}purchase/get/product/${sale.ro}`, {
-      headers: { role: myLoginUser?.roleID?.name, requestBy: myLoginUser?._id, }
-    })
+    fetch(
+      `${process.env.REACT_APP_API_BASE_URL}purchase/get/product/${sale.ro}`,
+      {
+        headers: {
+          role: myLoginUser?.roleID?.name,
+          requestBy: myLoginUser?._id,
+        },
+      }
+    )
       .then((response) => response.json())
       .then((data) => {
         setAllPurchaseData(data);
       })
-      .catch((err) => toastMessage(err?.message || "Something goes wrong", TOAST_TYPE.TYPE_ERROR));
+      .catch((err) =>
+        toastMessage(
+          err?.message || "Something goes wrong",
+          TOAST_TYPE.TYPE_ERROR
+        )
+      );
   };
-
 
   // Handling Input Change for input fields
   const handleInputChange = (index, key, value) => {
     const updatedSales = [...sale];
-    if (key === 'productID') {
-      const brandInfo = products?.find(p => p._id === value)?.BrandID;
-      updatedSales[index] = { ...updatedSales[index], ['brandID']: brandInfo?._id };
+    if (key === "productID") {
+      const brandInfo = products?.find((p) => p._id === value)?.BrandID;
+      updatedSales[index] = {
+        ...updatedSales[index],
+        ["brandID"]: brandInfo?._id,
+      };
     }
     updatedSales[index] = { ...updatedSales[index], [key]: value };
     setSale(updatedSales);
   };
 
-
-
-
   const formatSaleData = () => {
-    let salePayload = []
-    const saleState = sale.map(item => ({ ...item }));
+    let salePayload = [];
+    const saleState = sale.map((item) => ({ ...item }));
 
     if (saleState?.length > 0) {
       salePayload = saleState?.map((item, index) => {
         // Add each item to the submittedItems array
         if (index !== 0) {
-          item.saleDate = sale?.[0].saleDate ? moment(new Date(sale[0].saleDate)).format('YYYY-MM-DD HH:mm') : moment().format('YYYY-MM-DD HH:mm')
-          item.warehouseID = sale[0].warehouseID
-          item.supplierName = sale[0].supplierName
-          item.referenceNo = sale[0].referenceNo
+          item.saleDate = sale?.[0].saleDate
+            ? moment(new Date(sale[0].saleDate)).format("YYYY-MM-DD HH:mm")
+            : moment().format("YYYY-MM-DD HH:mm");
+          item.warehouseID = sale[0].warehouseID;
+          item.supplierName = sale[0].supplierName;
+          item.referenceNo = sale[0].referenceNo;
         } else {
-          item.saleDate = sale?.[index].saleDate ? moment(new Date(sale[index].saleDate)).format('YYYY-MM-DD HH:mm') : moment().format('YYYY-MM-DD HH:mm')
+          item.saleDate = sale?.[index].saleDate
+            ? moment(new Date(sale[index].saleDate)).format("YYYY-MM-DD HH:mm")
+            : moment().format("YYYY-MM-DD HH:mm");
         }
-        return item
+        return item;
       });
     }
-    return salePayload
-  }
+    return salePayload;
+  };
 
   // PDF Download
   const pdfDownload = async () => {
-
     const salePayload = formatSaleData();
 
     if (sale?.length === 0) {
-      toastMessage("Please add sale", TOAST_TYPE.TYPE_ERROR)
+      toastMessage("Please add sale", TOAST_TYPE.TYPE_ERROR);
       return;
     }
 
     // Check if any product field is null or empty
     const hasEmptyField = salePayload.some(
-      (p) =>
-        !p?.productID ||
-        !p?.stockSold ||
-        !p?.saleDate
-    )
+      (p) => !p?.productID || !p?.stockSold || !p?.saleDate
+    );
 
-    const hasFieldLessthanZero = salePayload.some(
-      (p) =>
-        p?.stockSold < 1
-    )
+    const hasFieldLessthanZero = salePayload.some((p) => p?.stockSold < 1);
 
     if (hasEmptyField) {
-      toastMessage("Please fill in all fields for each sale", TOAST_TYPE.TYPE_ERROR);
+      toastMessage(
+        "Please fill in all fields for each sale",
+        TOAST_TYPE.TYPE_ERROR
+      );
       return;
     }
 
     if (hasFieldLessthanZero) {
-      toastMessage("Sale quantity should be grater than zero", TOAST_TYPE.TYPE_ERROR);
+      toastMessage(
+        "Sale quantity should be grater than zero",
+        TOAST_TYPE.TYPE_ERROR
+      );
       return;
     }
 
@@ -127,56 +138,57 @@ export default function AddSale({
       salePayload,
       {
         headers: {
-          'role': myLoginUser?.roleID?.name,
-          'requestBy': myLoginUser?._id,
+          role: myLoginUser?.roleID?.name,
+          requestBy: myLoginUser?._id,
         },
-        responseType: 'arraybuffer',
-        'Content-Type': 'application/json',
+        responseType: "arraybuffer",
+        "Content-Type": "application/json",
       }
     );
     // Assuming the server returns the PDF content as a blob
     // setPdfData(new Blob([response.data], { type: 'application/pdf' }));
 
-    const url = window.URL.createObjectURL(new Blob([response.data], { type: 'application/pdf' }));
-    const a = document.createElement('a');
+    const url = window.URL.createObjectURL(
+      new Blob([response.data], { type: "application/pdf" })
+    );
+    const a = document.createElement("a");
     a.href = url;
-    a.download = 'output.pdf';
+    a.download = "output.pdf";
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
-    window.open(url, '_blank');
+    window.open(url, "_blank");
   };
 
   // POST Data
   const addSale = () => {
-
     const salePayload = formatSaleData();
 
     if (sale?.length === 0) {
-      toastMessage("Please add sale", TOAST_TYPE.TYPE_ERROR)
+      toastMessage("Please add sale", TOAST_TYPE.TYPE_ERROR);
       return;
     }
 
     // Check if any product field is null or empty
     const hasEmptyField = salePayload.some(
-      (p) =>
-        !p?.productID ||
-        !p?.stockSold ||
-        !p?.saleDate
-    )
+      (p) => !p?.productID || !p?.stockSold || !p?.saleDate
+    );
 
-    const hasFieldLessthanZero = salePayload.some(
-      (p) =>
-        p?.stockSold < 1
-    )
+    const hasFieldLessthanZero = salePayload.some((p) => p?.stockSold < 1);
 
     if (hasEmptyField) {
-      toastMessage("Please fill in all fields for each sale", TOAST_TYPE.TYPE_ERROR);
+      toastMessage(
+        "Please fill in all fields for each sale",
+        TOAST_TYPE.TYPE_ERROR
+      );
       return;
     }
 
     if (hasFieldLessthanZero) {
-      toastMessage("Sale quantity should be grater than zero", TOAST_TYPE.TYPE_ERROR);
+      toastMessage(
+        "Sale quantity should be grater than zero",
+        TOAST_TYPE.TYPE_ERROR
+      );
       return;
     }
 
@@ -185,41 +197,53 @@ export default function AddSale({
       headers: {
         role: myLoginUser?.roleID?.name,
         requestBy: myLoginUser?._id,
-        "Content-type": "application/json",
+        "Content-Type": "application/json",
       },
       body: JSON.stringify(salePayload),
     })
       .then(async (res) => {
         if (!res.ok) {
           const errorData = await res.json(); // Assuming the error response is in JSON format
-          throw new Error(errorData.message || errorData.error || "Something went wrong on the server");
+          throw new Error(
+            errorData.message ||
+              errorData.error ||
+              "Something went wrong on the server"
+          );
         }
 
-        toastMessage("Sale ADDED", TOAST_TYPE.TYPE_SUCCESS)
+        toastMessage("Sale ADDED", TOAST_TYPE.TYPE_SUCCESS);
         // handlePageUpdate();
         // addSaleModalSetting();
-        setPdfOpen(true)
+        setPdfOpen(true);
       })
-      .catch((err) => toastMessage(err?.message || "Something goes wrong", TOAST_TYPE.TYPE_ERROR));
+      .catch((err) =>
+        toastMessage(
+          err?.message || "Something goes wrong",
+          TOAST_TYPE.TYPE_ERROR
+        )
+      );
   };
 
   const handleOpenBrand = () => {
-    setBrandModal(true)
+    setBrandModal(true);
   };
 
   const handleAddForm = () => {
-    setSale([...sale, {
-      userID: authContext.user,
-      productID: "",
-      storeID: "",
-      stockSold: "",
-      saleDate: "",
-      totalSaleAmount: "",
-    }]);
+    setSale([
+      ...sale,
+      {
+        userID: authContext.user?._id,
+        productID: "",
+        storeID: "",
+        stockSold: "",
+        saleDate: "",
+        totalSaleAmount: "",
+      },
+    ]);
   };
 
   const removeForm = (index) => {
-    setSale(prevSale => prevSale.filter((_, i) => i !== index));
+    setSale((prevSale) => prevSale.filter((_, i) => i !== index));
   };
 
   return (
@@ -281,7 +305,12 @@ export default function AddSale({
                               className="flex justify-center items-center px-2 text-red-600 border border-red-600 hover:bg-red-600 hover:text-white rounded-lg py-2 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 transition ease-in-out duration-150"
                               onClick={() => removeForm(index)}
                             >
-                              <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                              <svg
+                                className="w-5 h-5"
+                                fill="currentColor"
+                                viewBox="0 0 20 20"
+                                xmlns="http://www.w3.org/2000/svg"
+                              >
                                 <path
                                   fillRule="evenodd"
                                   d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z"
@@ -303,13 +332,20 @@ export default function AddSale({
                                 className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
                                 name="productID"
                                 onChange={(e) =>
-                                  handleInputChange(index, e.target.name, e.target.value)
+                                  handleInputChange(
+                                    index,
+                                    e.target.name,
+                                    e.target.value
+                                  )
                                 }
                               >
                                 <option selected="">Select Products</option>
                                 {products.map((element, index) => {
                                   return (
-                                    <option key={element._id} value={element._id}>
+                                    <option
+                                      key={element._id}
+                                      value={element._id}
+                                    >
                                       {element.name}
                                     </option>
                                   );
@@ -330,7 +366,11 @@ export default function AddSale({
                                 id="stockSold"
                                 value={sale.stockSold}
                                 onChange={(e) =>
-                                  handleInputChange(index, e.target.name, e.target.value)
+                                  handleInputChange(
+                                    index,
+                                    e.target.name,
+                                    e.target.value
+                                  )
                                 }
                                 className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
                                 placeholder="0 - 999"
@@ -338,8 +378,11 @@ export default function AddSale({
                             </div>
                           </div>
 
-
-                          <div className={`grid gap-4 mb-4 ${index !== 0 ? "sm:grid-cols-1" : "sm:grid-cols-2"}`}>
+                          <div
+                            className={`grid gap-4 mb-4 ${
+                              index !== 0 ? "sm:grid-cols-1" : "sm:grid-cols-2"
+                            }`}
+                          >
                             <div>
                               <label
                                 htmlFor="brandID"
@@ -351,9 +394,15 @@ export default function AddSale({
                                 id="brandID"
                                 className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
                                 name="brandID"
-                                value={sale[index]?.brandID || ''}
+                                value={sale[index]?.brandID || ""}
                                 disabled={true}
-                                onChange={(e) => handleInputChange(index, e.target.name, e.target.value)}
+                                onChange={(e) =>
+                                  handleInputChange(
+                                    index,
+                                    e.target.name,
+                                    e.target.value
+                                  )
+                                }
                               >
                                 <option selected="">Select Brand</option>
                                 {brands.map((element, index) => (
@@ -364,7 +413,7 @@ export default function AddSale({
                               </select>
                             </div>
 
-                            {index === 0 &&
+                            {index === 0 && (
                               <>
                                 <div>
                                   <label
@@ -379,7 +428,11 @@ export default function AddSale({
                                     id="supplierName"
                                     value={sale.supplierName}
                                     onChange={(e) =>
-                                      handleInputChange(index, e.target.name, e.target.value)
+                                      handleInputChange(
+                                        index,
+                                        e.target.name,
+                                        e.target.value
+                                      )
                                     }
                                     className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
                                     placeholder="Enter Customer Name"
@@ -397,20 +450,30 @@ export default function AddSale({
                                     className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
                                     name="warehouseID"
                                     onChange={(e) =>
-                                      handleInputChange(index, e.target.name, e.target.value)
+                                      handleInputChange(
+                                        index,
+                                        e.target.name,
+                                        e.target.value
+                                      )
                                     }
                                   >
-                                    <option selected="">Select Warehouse</option>
+                                    <option selected="">
+                                      Select Warehouse
+                                    </option>
                                     {warehouses.map((element, index) => {
                                       return (
-                                        <option key={element._id} value={element._id}>
+                                        <option
+                                          key={element._id}
+                                          value={element._id}
+                                        >
                                           {element.name}
                                         </option>
                                       );
                                     })}
                                   </select>
                                 </div>
-                              </>}
+                              </>
+                            )}
                           </div>
                           <div className="grid gap-4 mb-4 sm:grid-cols-2">
                             {/*Code for future ref
@@ -464,7 +527,7 @@ export default function AddSale({
                                 Add Brand
                               </Button>
                             </div> */}
-                            {index === 0 &&
+                            {index === 0 && (
                               <>
                                 <div className="h-fit w-full">
                                   {/* <Datepicker
@@ -480,15 +543,28 @@ export default function AddSale({
                                   </label>
                                   <DatePicker
                                     dateFormat="dd-MM-yyyy HH:mm"
-                                    selected={sale[index]?.saleDate ? new Date(sale[index].saleDate) : new Date()}
+                                    selected={
+                                      sale[index]?.saleDate
+                                        ? new Date(sale[index].saleDate)
+                                        : new Date()
+                                    }
                                     placeholderText="dd-mm-yyyy"
                                     maxDate={new Date()}
                                     showTimeSelect
                                     timeIntervals={1}
-                                    disabled={![ROLES.HIDE_MASTER_SUPER_ADMIN, ROLES.SUPER_ADMIN].includes(myLoginUser?.roleID?.name)}
+                                    disabled={
+                                      ![
+                                        ROLES.HIDE_MASTER_SUPER_ADMIN,
+                                        ROLES.SUPER_ADMIN,
+                                      ].includes(myLoginUser?.roleID?.name)
+                                    }
                                     className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
                                     onChange={(date) => {
-                                      handleInputChange(index, 'saleDate', date)
+                                      handleInputChange(
+                                        index,
+                                        "saleDate",
+                                        date
+                                      );
                                     }}
                                   />
                                   {/* <input
@@ -515,14 +591,18 @@ export default function AddSale({
                                     id="referenceNo"
                                     value={sale.referenceNo}
                                     onChange={(e) =>
-                                      handleInputChange(index, e.target.name, e.target.value)
+                                      handleInputChange(
+                                        index,
+                                        e.target.name,
+                                        e.target.value
+                                      )
                                     }
                                     className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
                                     placeholder="Enter Reference Number"
                                   />
                                 </div>
                               </>
-                            }
+                            )}
                           </div>
                           <div className="flex items-center space-x-4">
                             {/* <button
@@ -549,26 +629,28 @@ export default function AddSale({
                             </svg>
                             Delete
                           </button> */}
-
                           </div>
-
                         </form>
                       ))}
                     </div>
                   </div>
                 </div>
-                {pdfOpen && <div className="bg-gray-50 px-4 py-3 sm:px-6">
-                  <h2 className="text-lg font-semibold">Are you want to download invoice bill?</h2>
-                  <p>This is the existing dialog sale items.</p>
+                {pdfOpen && (
+                  <div className="bg-gray-50 px-4 py-3 sm:px-6">
+                    <h2 className="text-lg font-semibold">
+                      Are you want to download invoice bill?
+                    </h2>
+                    <p>This is the existing dialog sale items.</p>
 
-                  <button
-                    type="button"
-                    className="inline-flex w-full justify-center rounded-md bg-blue-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-500 sm:w-auto"
-                    onClick={pdfDownload}
-                  >
-                    Pdf Download
-                  </button>
-                </div>}
+                    <button
+                      type="button"
+                      className="inline-flex w-full justify-center rounded-md bg-blue-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-500 sm:w-auto"
+                      onClick={pdfDownload}
+                    >
+                      Pdf Download
+                    </button>
+                  </div>
+                )}
                 <div className="bg-gray-50 px-4 py-3 sm:flex sm:flex-row-reverse sm:px-6">
                   <button
                     type="button"
@@ -591,7 +673,9 @@ export default function AddSale({
                 </div>
                 {showBrandModal && (
                   <AddBrand
-                    addBrandModalSetting={() => { setBrandModal(false) }}
+                    addBrandModalSetting={() => {
+                      setBrandModal(false);
+                    }}
                     handlePageUpdate={handlePageUpdate}
                   />
                 )}
@@ -600,6 +684,6 @@ export default function AddSale({
           </div>
         </div>
       </Dialog>
-    </Transition.Root >
+    </Transition.Root>
   );
 }

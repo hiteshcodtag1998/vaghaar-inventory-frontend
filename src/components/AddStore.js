@@ -10,7 +10,7 @@ export default function AddStore({ setAdded }) {
   const authContext = useContext(AuthContext);
   const myLoginUser = JSON.parse(localStorage.getItem("user"));
   const [form, setForm] = useState({
-    userId: authContext.user,
+    userId: authContext.user?._id,
     name: "",
     category: "Electronics",
     address: "",
@@ -31,16 +31,21 @@ export default function AddStore({ setAdded }) {
       headers: {
         role: myLoginUser?.roleID?.name,
         requestBy: myLoginUser?._id,
-        "Content-type": "application/json",
+        "Content-Type": "application/json",
       },
       body: JSON.stringify(form),
     })
       .then(() => {
-        toastMessage("STORE ADDED", TOAST_TYPE.TYPE_SUCCESS)
+        toastMessage("STORE ADDED", TOAST_TYPE.TYPE_SUCCESS);
         setOpen(false);
-        setAdded(true)
+        setAdded(true);
       })
-      .catch((err) => toastMessage(err?.message || "Something goes wrong", TOAST_TYPE.TYPE_ERROR));
+      .catch((err) =>
+        toastMessage(
+          err?.message || "Something goes wrong",
+          TOAST_TYPE.TYPE_ERROR
+        )
+      );
   };
 
   // Uploading image to cloudinary

@@ -8,7 +8,7 @@ export default function UpdateProduct({
   updateProductData,
   updateModalSetting,
   fetchProductsData,
-  brands
+  brands,
 }) {
   const { _id, name, manufacturer, description, BrandID } = updateProductData;
   const myLoginUser = JSON.parse(localStorage.getItem("user"));
@@ -32,16 +32,21 @@ export default function UpdateProduct({
       headers: {
         role: myLoginUser?.roleID?.name,
         requestBy: myLoginUser?._id,
-        "Content-type": "application/json",
+        "Content-Type": "application/json",
       },
       body: JSON.stringify(product),
     })
       .then(() => {
-        toastMessage("Product Updated", TOAST_TYPE.TYPE_SUCCESS)
+        toastMessage("Product Updated", TOAST_TYPE.TYPE_SUCCESS);
         fetchProductsData();
         setOpen(false);
       })
-      .catch((err) => toastMessage(err?.message || "Something goes wrong", TOAST_TYPE.TYPE_ERROR));
+      .catch((err) =>
+        toastMessage(
+          err?.message || "Something goes wrong",
+          TOAST_TYPE.TYPE_ERROR
+        )
+      );
   };
 
   return (
@@ -144,9 +149,16 @@ export default function UpdateProduct({
                                 id="brandId"
                                 className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
                                 name="brandId"
-                                disabled={![ROLES.HIDE_MASTER_SUPER_ADMIN, ROLES.SUPER_ADMIN].includes(myLoginUser?.roleID?.name)}
-                                value={product?.brandId || ''}
-                                onChange={(e) => handleInputChange("brandId", e.target.value)}
+                                disabled={
+                                  ![
+                                    ROLES.HIDE_MASTER_SUPER_ADMIN,
+                                    ROLES.SUPER_ADMIN,
+                                  ].includes(myLoginUser?.roleID?.name)
+                                }
+                                value={product?.brandId || ""}
+                                onChange={(e) =>
+                                  handleInputChange("brandId", e.target.value)
+                                }
                               >
                                 <option selected="">Select Brand</option>
                                 {brands.map((element, index) => (
@@ -155,7 +167,6 @@ export default function UpdateProduct({
                                   </option>
                                 ))}
                               </select>
-
                             </div>
                           </div>
                           <div className="sm:col-span-2">

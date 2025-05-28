@@ -5,10 +5,10 @@ import { ROLES, TOAST_TYPE } from "../utils/constant";
 import { toastMessage } from "../utils/handler";
 import { Button } from "@mui/material";
 import AddBrand from "./AddBrand";
-import DatePicker from 'react-datepicker';
-import 'react-datepicker/dist/react-datepicker.css';
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
 import moment from "moment";
-import axios from 'axios'
+import axios from "axios";
 
 export default function AddPurchaseDetails({
   addSaleModalSetting,
@@ -16,17 +16,19 @@ export default function AddPurchaseDetails({
   handlePageUpdate,
   authContext,
   brands,
-  warehouses
+  warehouses,
 }) {
-  const [purchase, setPurchase] = useState([{
-    userID: authContext.user,
-    productID: "",
-    quantityPurchased: "",
-    purchaseDate: "",
-    totalPurchaseAmount: "",
-    warehouseID: "",
-    supplierName: ""
-  }]);
+  const [purchase, setPurchase] = useState([
+    {
+      userID: authContext.user?._id,
+      productID: "",
+      quantityPurchased: "",
+      purchaseDate: "",
+      totalPurchaseAmount: "",
+      warehouseID: "",
+      supplierName: "",
+    },
+  ]);
   const [open, setOpen] = useState(true);
   const cancelButtonRef = useRef(null);
   const [showBrandModal, setBrandModal] = useState(false);
@@ -36,59 +38,71 @@ export default function AddPurchaseDetails({
   // Handling Input Change for input fields
   const handleInputChange = (index, key, value) => {
     const updatedProducts = [...purchase];
-    if (key === 'productID') {
-      const brandInfo = products?.find(p => p._id === value)?.BrandID;
-      updatedProducts[index] = { ...updatedProducts[index], ['brandID']: brandInfo?._id };
+    if (key === "productID") {
+      const brandInfo = products?.find((p) => p._id === value)?.BrandID;
+      updatedProducts[index] = {
+        ...updatedProducts[index],
+        ["brandID"]: brandInfo?._id,
+      };
     }
     updatedProducts[index] = { ...updatedProducts[index], [key]: value };
     setPurchase(updatedProducts);
   };
 
   const formatPurchaseData = () => {
-    let purchasePayload = []
-    const purchaseState = purchase.map(item => ({ ...item }));
+    let purchasePayload = [];
+    const purchaseState = purchase.map((item) => ({ ...item }));
 
     if (purchaseState?.length > 0)
       purchasePayload = purchaseState?.map((item, index) => {
         // Add each item to the submittedItems array
         if (index !== 0) {
-          item.purchaseDate = purchase?.[0]?.purchaseDate ? moment(new Date(purchase[0].purchaseDate)).format('YYYY-MM-DD HH:mm') : moment().format('YYYY-MM-DD HH:mm')
-          item.warehouseID = purchase[0].warehouseID
-          item.supplierName = purchase[0].supplierName
-          item.referenceNo = purchase[0].referenceNo
+          item.purchaseDate = purchase?.[0]?.purchaseDate
+            ? moment(new Date(purchase[0].purchaseDate)).format(
+                "YYYY-MM-DD HH:mm"
+              )
+            : moment().format("YYYY-MM-DD HH:mm");
+          item.warehouseID = purchase[0].warehouseID;
+          item.supplierName = purchase[0].supplierName;
+          item.referenceNo = purchase[0].referenceNo;
         } else {
-          item.purchaseDate = purchase?.[index].purchaseDate ? moment(new Date(purchase[index].purchaseDate)).format('YYYY-MM-DD HH:mm') : moment().format('YYYY-MM-DD HH:mm')
+          item.purchaseDate = purchase?.[index].purchaseDate
+            ? moment(new Date(purchase[index].purchaseDate)).format(
+                "YYYY-MM-DD HH:mm"
+              )
+            : moment().format("YYYY-MM-DD HH:mm");
         }
-        return item
+        return item;
       });
-    return purchasePayload
-  }
+    return purchasePayload;
+  };
 
   // PDF Download
   const pdfDownload = async () => {
-
     const purchasePayload = formatPurchaseData();
 
     // Check if any product field is null or empty
     const hasEmptyField = purchasePayload.some(
-      (p) =>
-        !p?.productID ||
-        !p?.quantityPurchased ||
-        !p?.purchaseDate
-    )
+      (p) => !p?.productID || !p?.quantityPurchased || !p?.purchaseDate
+    );
 
     const hasFieldLessthanZero = purchasePayload.some(
-      (p) =>
-        p?.quantityPurchased < 1
-    )
+      (p) => p?.quantityPurchased < 1
+    );
 
     if (hasEmptyField) {
-      toastMessage("Please fill in all fields for each purchase", TOAST_TYPE.TYPE_ERROR);
+      toastMessage(
+        "Please fill in all fields for each purchase",
+        TOAST_TYPE.TYPE_ERROR
+      );
       return;
     }
 
     if (hasFieldLessthanZero) {
-      toastMessage("Purchase quantity should be grater than zero", TOAST_TYPE.TYPE_ERROR);
+      toastMessage(
+        "Purchase quantity should be grater than zero",
+        TOAST_TYPE.TYPE_ERROR
+      );
       return;
     }
 
@@ -97,31 +111,32 @@ export default function AddPurchaseDetails({
       purchasePayload,
       {
         headers: {
-          'role': myLoginUser?.roleID?.name,
-          'requestBy': myLoginUser?._id,
+          role: myLoginUser?.roleID?.name,
+          requestBy: myLoginUser?._id,
         },
-        responseType: 'arraybuffer',
-        'Content-Type': 'application/json',
+        responseType: "arraybuffer",
+        "Content-Type": "application/json",
       }
     );
     // Assuming the server returns the PDF content as a blob
     // setPdfData(new Blob([response.data], { type: 'application/pdf' }));
 
-    const url = window.URL.createObjectURL(new Blob([response.data], { type: 'application/pdf' }));
-    const a = document.createElement('a');
+    const url = window.URL.createObjectURL(
+      new Blob([response.data], { type: "application/pdf" })
+    );
+    const a = document.createElement("a");
     a.href = url;
-    a.download = 'output.pdf';
+    a.download = "output.pdf";
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
-    window.open(url, '_blank');
+    window.open(url, "_blank");
   };
 
   // POST Data
   const addPurchase = () => {
-
     if (purchase?.length === 0) {
-      toastMessage("Please add purchase", TOAST_TYPE.TYPE_ERROR)
+      toastMessage("Please add purchase", TOAST_TYPE.TYPE_ERROR);
       return;
     }
 
@@ -129,24 +144,26 @@ export default function AddPurchaseDetails({
 
     // Check if any product field is null or empty
     const hasEmptyField = purchasePayload.some(
-      (p) =>
-        !p?.productID ||
-        !p?.quantityPurchased ||
-        !p?.purchaseDate
-    )
+      (p) => !p?.productID || !p?.quantityPurchased || !p?.purchaseDate
+    );
 
     const hasFieldLessthanZero = purchasePayload.some(
-      (p) =>
-        p?.quantityPurchased < 1
-    )
+      (p) => p?.quantityPurchased < 1
+    );
 
     if (hasEmptyField) {
-      toastMessage("Please fill in all fields for each purchase", TOAST_TYPE.TYPE_ERROR);
+      toastMessage(
+        "Please fill in all fields for each purchase",
+        TOAST_TYPE.TYPE_ERROR
+      );
       return;
     }
 
     if (hasFieldLessthanZero) {
-      toastMessage("Purchase quantity should be grater than zero", TOAST_TYPE.TYPE_ERROR);
+      toastMessage(
+        "Purchase quantity should be grater than zero",
+        TOAST_TYPE.TYPE_ERROR
+      );
       return;
     }
 
@@ -155,29 +172,37 @@ export default function AddPurchaseDetails({
       headers: {
         role: myLoginUser?.roleID?.name,
         requestBy: myLoginUser?._id,
-        "Content-type": "application/json",
+        "Content-Type": "application/json",
       },
       body: JSON.stringify(purchasePayload),
     })
       .then(() => {
-        toastMessage("Purchase ADDED", TOAST_TYPE.TYPE_SUCCESS)
-        setPdfOpen(true)
+        toastMessage("Purchase ADDED", TOAST_TYPE.TYPE_SUCCESS);
+        setPdfOpen(true);
       })
-      .catch((err) => toastMessage(err?.message || "Something goes wrong", TOAST_TYPE.TYPE_ERROR));
+      .catch((err) =>
+        toastMessage(
+          err?.message || "Something goes wrong",
+          TOAST_TYPE.TYPE_ERROR
+        )
+      );
   };
 
   const handleOpenBrand = () => {
-    setBrandModal(true)
+    setBrandModal(true);
   };
 
   const handleAddForm = () => {
-    setPurchase([...purchase, {
-      userID: authContext.user,
-      productID: "",
-      quantityPurchased: "",
-      purchaseDate: "",
-      totalPurchaseAmount: "",
-    }]);
+    setPurchase([
+      ...purchase,
+      {
+        userID: authContext.user?._id,
+        productID: "",
+        quantityPurchased: "",
+        purchaseDate: "",
+        totalPurchaseAmount: "",
+      },
+    ]);
   };
 
   const removeForm = (index) => {
@@ -194,10 +219,10 @@ export default function AddPurchaseDetails({
 
     // Format month and day to have leading zeros if necessary
     if (month < 10) {
-      month = '0' + month;
+      month = "0" + month;
     }
     if (day < 10) {
-      day = '0' + day;
+      day = "0" + day;
     }
 
     return `${year}-${month}-${day}`;
@@ -238,7 +263,6 @@ export default function AddPurchaseDetails({
                 <Dialog.Panel className="relative transform overflow-hidden rounded-lg bg-white text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg overflow-y-scroll">
                   <div className="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
                     <div className="sm:flex sm:items-start">
-
                       <div className="mx-auto flex h-12 w-12 mt-4 flex-shrink-0 items-center justify-center rounded-full bg-blue-100 sm:mx-0 sm:h-10 sm:w-10">
                         <PlusIcon
                           className="h-6 w-6 text-blue-400"
@@ -263,7 +287,12 @@ export default function AddPurchaseDetails({
                                 className="flex justify-center items-center px-2 text-red-600 border border-red-600 hover:bg-red-600 hover:text-white rounded-lg py-2 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 transition ease-in-out duration-150"
                                 onClick={() => removeForm(index)}
                               >
-                                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                                <svg
+                                  className="w-5 h-5"
+                                  fill="currentColor"
+                                  viewBox="0 0 20 20"
+                                  xmlns="http://www.w3.org/2000/svg"
+                                >
                                   <path
                                     fillRule="evenodd"
                                     d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z"
@@ -284,16 +313,24 @@ export default function AddPurchaseDetails({
                                   id="productID"
                                   className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
                                   name="productID"
-                                  onChange={(e) => handleInputChange(index, e.target.name, e.target.value)}
+                                  onChange={(e) =>
+                                    handleInputChange(
+                                      index,
+                                      e.target.name,
+                                      e.target.value
+                                    )
+                                  }
                                 >
                                   <option selected="">Select Products</option>
                                   {products.map((element, index) => (
-                                    <option key={element._id} value={element._id}>
+                                    <option
+                                      key={element._id}
+                                      value={element._id}
+                                    >
                                       {element.name}
                                     </option>
                                   ))}
                                 </select>
-
                               </div>
 
                               <div>
@@ -309,14 +346,24 @@ export default function AddPurchaseDetails({
                                   id="quantityPurchased"
                                   value={purchase.quantityPurchased}
                                   onChange={(e) =>
-                                    handleInputChange(index, e.target.name, e.target.value)
+                                    handleInputChange(
+                                      index,
+                                      e.target.name,
+                                      e.target.value
+                                    )
                                   }
                                   className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
                                   placeholder="0 - 999"
                                 />
                               </div>
                             </div>
-                            <div className={`grid gap-4 mb-4 ${index !== 0 ? "sm:grid-cols-1" : "sm:grid-cols-2"}`}>
+                            <div
+                              className={`grid gap-4 mb-4 ${
+                                index !== 0
+                                  ? "sm:grid-cols-1"
+                                  : "sm:grid-cols-2"
+                              }`}
+                            >
                               <div className="w-full">
                                 <label
                                   htmlFor="brandID"
@@ -328,38 +375,52 @@ export default function AddPurchaseDetails({
                                   id="brandID"
                                   className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
                                   name="brandID"
-                                  value={purchase[index]?.brandID || ''}
+                                  value={purchase[index]?.brandID || ""}
                                   disabled={true}
-                                  onChange={(e) => handleInputChange(index, e.target.name, e.target.value)}
+                                  onChange={(e) =>
+                                    handleInputChange(
+                                      index,
+                                      e.target.name,
+                                      e.target.value
+                                    )
+                                  }
                                 >
                                   <option selected="">Select Brand</option>
                                   {brands.map((element, index) => (
-                                    <option key={element._id} value={element._id}>
+                                    <option
+                                      key={element._id}
+                                      value={element._id}
+                                    >
                                       {element.name}
                                     </option>
                                   ))}
                                 </select>
                               </div>
-                              {index === 0 &&
-                                <><div>
-                                  <label
-                                    htmlFor="supplierName"
-                                    className="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
-                                  >
-                                    Supplier Name
-                                  </label>
-                                  <input
-                                    type="text"
-                                    name="supplierName"
-                                    id="supplierName"
-                                    value={purchase.supplierName}
-                                    onChange={(e) =>
-                                      handleInputChange(index, e.target.name, e.target.value)
-                                    }
-                                    className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
-                                    placeholder="Enter Supplier Name"
-                                  />
-                                </div>
+                              {index === 0 && (
+                                <>
+                                  <div>
+                                    <label
+                                      htmlFor="supplierName"
+                                      className="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
+                                    >
+                                      Supplier Name
+                                    </label>
+                                    <input
+                                      type="text"
+                                      name="supplierName"
+                                      id="supplierName"
+                                      value={purchase.supplierName}
+                                      onChange={(e) =>
+                                        handleInputChange(
+                                          index,
+                                          e.target.name,
+                                          e.target.value
+                                        )
+                                      }
+                                      className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
+                                      placeholder="Enter Supplier Name"
+                                    />
+                                  </div>
 
                                   <div>
                                     <label
@@ -373,20 +434,30 @@ export default function AddPurchaseDetails({
                                       className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
                                       name="warehouseID"
                                       onChange={(e) =>
-                                        handleInputChange(index, e.target.name, e.target.value)
+                                        handleInputChange(
+                                          index,
+                                          e.target.name,
+                                          e.target.value
+                                        )
                                       }
                                     >
-                                      <option selected="">Select Warehouse</option>
+                                      <option selected="">
+                                        Select Warehouse
+                                      </option>
                                       {warehouses.map((element, index) => {
                                         return (
-                                          <option key={element._id} value={element._id}>
+                                          <option
+                                            key={element._id}
+                                            value={element._id}
+                                          >
                                             {element.name}
                                           </option>
                                         );
                                       })}
                                     </select>
-                                  </div></>
-                              }
+                                  </div>
+                                </>
+                              )}
                             </div>
                             <div className="grid gap-4 mb-4 sm:grid-cols-2">
                               {/* <div>
@@ -433,7 +504,7 @@ export default function AddPurchaseDetails({
                                 Add Brand
                               </Button>
                             </div> */}
-                              {index === 0 &&
+                              {index === 0 && (
                                 <>
                                   <div className="h-fit w-full">
                                     {/* <Datepicker
@@ -449,15 +520,30 @@ export default function AddPurchaseDetails({
                                     </label>
                                     <DatePicker
                                       dateFormat="dd-MM-yyyy HH:mm"
-                                      selected={purchase[index]?.purchaseDate ? new Date(purchase[index].purchaseDate) : new Date()}
+                                      selected={
+                                        purchase[index]?.purchaseDate
+                                          ? new Date(
+                                              purchase[index].purchaseDate
+                                            )
+                                          : new Date()
+                                      }
                                       placeholderText="dd-mm-yyyy"
                                       maxDate={new Date()}
                                       showTimeSelect
                                       timeIntervals={1}
-                                      disabled={![ROLES.HIDE_MASTER_SUPER_ADMIN, ROLES.SUPER_ADMIN].includes(myLoginUser?.roleID?.name)}
+                                      disabled={
+                                        ![
+                                          ROLES.HIDE_MASTER_SUPER_ADMIN,
+                                          ROLES.SUPER_ADMIN,
+                                        ].includes(myLoginUser?.roleID?.name)
+                                      }
                                       className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
                                       onChange={(date) => {
-                                        handleInputChange(index, 'purchaseDate', date)
+                                        handleInputChange(
+                                          index,
+                                          "purchaseDate",
+                                          date
+                                        );
                                       }}
                                     />
                                     {/* <input
@@ -486,14 +572,18 @@ export default function AddPurchaseDetails({
                                       id="referenceNo"
                                       value={purchase.referenceNo}
                                       onChange={(e) =>
-                                        handleInputChange(index, e.target.name, e.target.value)
+                                        handleInputChange(
+                                          index,
+                                          e.target.name,
+                                          e.target.value
+                                        )
                                       }
                                       className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
                                       placeholder="Enter Reference Number"
                                     />
                                   </div>
                                 </>
-                              }
+                              )}
                             </div>
                             <div className="flex items-center space-x-4">
                               {/* <button
@@ -520,25 +610,28 @@ export default function AddPurchaseDetails({
                             </svg>
                             Delete
                           </button> */}
-
                             </div>
                           </form>
                         ))}
                       </div>
                     </div>
                   </div>
-                  {pdfOpen && <div className="bg-gray-50 px-4 py-3 sm:px-6">
-                    <h2 className="text-lg font-semibold">Are you want to download invoice bill?</h2>
-                    <p>This is the existing dialog purchase items.</p>
+                  {pdfOpen && (
+                    <div className="bg-gray-50 px-4 py-3 sm:px-6">
+                      <h2 className="text-lg font-semibold">
+                        Are you want to download invoice bill?
+                      </h2>
+                      <p>This is the existing dialog purchase items.</p>
 
-                    <button
-                      type="button"
-                      className="inline-flex w-full justify-center rounded-md bg-blue-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-500 sm:w-auto"
-                      onClick={pdfDownload}
-                    >
-                      Pdf Download
-                    </button>
-                  </div>}
+                      <button
+                        type="button"
+                        className="inline-flex w-full justify-center rounded-md bg-blue-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-500 sm:w-auto"
+                        onClick={pdfDownload}
+                      >
+                        Pdf Download
+                      </button>
+                    </div>
+                  )}
                   <div className="bg-gray-50 px-4 py-3 sm:flex sm:flex-row-reverse sm:px-6">
                     <button
                       type="button"
@@ -561,7 +654,9 @@ export default function AddPurchaseDetails({
                   </div>
                   {showBrandModal && (
                     <AddBrand
-                      addBrandModalSetting={() => { setBrandModal(false) }}
+                      addBrandModalSetting={() => {
+                        setBrandModal(false);
+                      }}
                       handlePageUpdate={handlePageUpdate}
                     />
                   )}
@@ -570,7 +665,6 @@ export default function AddPurchaseDetails({
             </div>
           </div>
         </Dialog>
-
       </Transition.Root>
     </>
   );

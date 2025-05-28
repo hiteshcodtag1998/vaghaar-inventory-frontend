@@ -6,6 +6,10 @@ import ConfirmationDialog from "../components/ConfirmationDialog";
 import { toastMessage } from "../utils/handler";
 import { MdEdit, MdDeleteForever, MdOutlineHideSource } from "react-icons/md";
 import { Tooltip } from "@mui/material";
+import StoreService from "../services/StoreService";
+import ProductService from "../services/ProductService";
+import WarehouseService from "../services/WarehouseService";
+import BrandService from "../services/BrandService";
 
 function Inventory() {
   const [showProductModal, setShowProductModal] = useState(false);
@@ -25,138 +29,118 @@ function Inventory() {
     totalProductCounts: 0,
     totalItemInWarehouse: 0,
   });
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
   const myLoginUser = JSON.parse(localStorage.getItem("user"));
 
   useEffect(() => {
     fetchProductsData();
-    fetchSalesData();
+    fetchStoreData();
     fetchBrandData();
     fetchWarehouseData();
     fetchTotalCountsData();
   }, [updatePage]);
 
-  // Fetching Data of All Warehouse items
-  const fetchWarehouseData = () => {
-    fetch(`${process.env.REACT_APP_API_BASE_URL}warehouse/get`, {
-      headers: { role: myLoginUser?.roleID?.name, requestBy: myLoginUser?._id },
-    })
-      .then((response) => response.json())
-      .then((data) => {
-        setAllWarehouses(data);
-      })
-      .catch((err) =>
-        toastMessage(
-          err?.message || "Something goes wrong",
-          TOAST_TYPE.TYPE_ERROR
-        )
+  useEffect(() => {
+    const delayDebounce = setTimeout(() => {
+      setDebouncedSearchTerm(searchTerm);
+    }, 500); // delay in ms
+
+    return () => clearTimeout(delayDebounce);
+  }, [searchTerm]);
+
+  useEffect(() => {
+    // If the user clears the search input, fetch all products
+    if (debouncedSearchTerm === "") {
+      fetchSearchData("");
+    } else if (debouncedSearchTerm) {
+      fetchSearchData(debouncedSearchTerm);
+    }
+  }, [debouncedSearchTerm]);
+
+  const fetchWarehouseData = async () => {
+    try {
+      const data = await WarehouseService.getAll(
+        myLoginUser?.roleID?.name,
+        myLoginUser?._id
       );
+      setAllWarehouses(data);
+    } catch (err) {
+      toastMessage(
+        err?.message || "Something goes wrong",
+        TOAST_TYPE.TYPE_ERROR
+      );
+    }
   };
 
-  // Fetching Data of All Total Counts
-  const fetchTotalCountsData = (warehouse = "") => {
-    fetch(
-      `${
-        process.env.REACT_APP_API_BASE_URL
-      }product/get-total-counts?selectWarehouse=${warehouse || ""}`,
-      {
-        headers: { role: myLoginUser?.roleID?.name },
-      }
-    )
-      .then((response) => response.json())
-      .then((data) => {
-        setTotalCounts(data);
-      })
-      .catch((err) =>
-        toastMessage(
-          err?.message || "Something goes wrong",
-          TOAST_TYPE.TYPE_ERROR
-        )
+  const fetchTotalCountsData = async (warehouse = "") => {
+    try {
+      const data = await ProductService.getTotalCounts(
+        myLoginUser?.roleID?.name,
+        warehouse
       );
+      setTotalCounts(data);
+    } catch (err) {
+      toastMessage(
+        err?.message || "Something goes wrong",
+        TOAST_TYPE.TYPE_ERROR
+      );
+    }
   };
 
-  // Fetching Data of All Products
-  const fetchProductsData = () => {
-    fetch(`${process.env.REACT_APP_API_BASE_URL}product/get`, {
-      headers: { role: myLoginUser?.roleID?.name },
-    })
-      .then((response) => response.json())
-      .then((data) => {
-        setAllProducts(data);
-      })
-      .catch((err) =>
-        toastMessage(
-          err?.message || "Something goes wrong",
-          TOAST_TYPE.TYPE_ERROR
-        )
+  const fetchProductsData = async () => {
+    try {
+      const data = await ProductService.getAll(myLoginUser?.roleID?.name);
+      setAllProducts(data);
+    } catch (err) {
+      toastMessage(
+        err?.message || "Something goes wrong",
+        TOAST_TYPE.TYPE_ERROR
       );
+    }
   };
 
-  // Fetching Data of Search Products
-  const fetchSearchData = (searchItem) => {
-    fetch(
-      `${
-        process.env.REACT_APP_API_BASE_URL
-      }product/search?searchTerm=${searchItem}&selectWarehouse=${
+  const fetchSearchData = async (searchItem) => {
+    try {
+      const data = await ProductService.search(
+        myLoginUser?.roleID?.name,
+        searchItem,
         selectWarehouse || ""
-      }`,
-      {
-        headers: { role: myLoginUser?.roleID?.name },
-      }
-    )
-      .then((response) => response.json())
-      .then((data) => {
-        setAllProducts(data);
-      })
-      .catch((err) =>
-        toastMessage(
-          err?.message || "Something goes wrong",
-          TOAST_TYPE.TYPE_ERROR
-        )
       );
+      setAllProducts(data);
+    } catch (err) {
+      toastMessage(
+        err?.message || "Something goes wrong",
+        TOAST_TYPE.TYPE_ERROR
+      );
+    }
   };
 
-  // Fetching Data of Search Products
-  const fetchProductByWarehouse = (selectWarehouseVal) => {
-    fetch(
-      `${
-        process.env.REACT_APP_API_BASE_URL
-      }product/search?selectWarehouse=${selectWarehouseVal}&searchTerm=${
-        searchTerm || ""
-      }`,
-      {
-        headers: { role: myLoginUser?.roleID?.name },
-      }
-    )
-      .then((response) => response.json())
-      .then((data) => {
-        const updatedData = data?.map((d) => {
-          if (d?.productID) {
-            d = {
-              ...d,
-              name: d?.productID?.name,
-              productCode: d?.productID?.productCode,
-              description: d?.productID?.description,
-            };
-          }
-          return d;
-        });
-        setAllProducts(updatedData);
-      })
-      .catch((err) =>
-        toastMessage(
-          err?.message || "Something goes wrong",
-          TOAST_TYPE.TYPE_ERROR
-        )
+  const fetchProductByWarehouse = async (selectWarehouseVal) => {
+    try {
+      const data = await ProductService.getByWarehouse(
+        myLoginUser?.roleID?.name,
+        searchTerm || "",
+        selectWarehouseVal
       );
+      setAllProducts(data);
+    } catch (err) {
+      toastMessage(
+        err?.message || "Something goes wrong",
+        TOAST_TYPE.TYPE_ERROR
+      );
+    }
   };
 
-  // // Fetching all stores data
-  const fetchSalesData = () => {
-    fetch(`${process.env.REACT_APP_API_BASE_URL}store/get`)
-      .then((response) => response.json())
-      .then((data) => {
-        setAllStores(data);
-      });
+  const fetchStoreData = async () => {
+    try {
+      const data = await StoreService.getAll();
+      setAllStores(data);
+    } catch (err) {
+      toastMessage(
+        err?.message || "Something goes wrong",
+        TOAST_TYPE.TYPE_ERROR
+      );
+    }
   };
 
   // Modal for Product ADD
@@ -196,7 +180,6 @@ function Inventory() {
   // Handle Search Term
   const handleSearchTerm = (e) => {
     setSearchTerm(e.target.value);
-    fetchSearchData(e.target.value);
   };
 
   // Handle Search Term
@@ -216,21 +199,16 @@ function Inventory() {
     setOpen(false);
   };
 
-  // Fetching Data of All Brrand items
-  const fetchBrandData = () => {
-    fetch(`${process.env.REACT_APP_API_BASE_URL}brand/get`, {
-      headers: { role: myLoginUser?.roleID?.name },
-    })
-      .then((response) => response.json())
-      .then((data) => {
-        setAllBrands(data);
-      })
-      .catch((err) =>
-        toastMessage(
-          err?.message || "Something goes wrong",
-          TOAST_TYPE.TYPE_ERROR
-        )
+  const fetchBrandData = async () => {
+    try {
+      const data = await BrandService.getAll(myLoginUser?.roleID?.name);
+      setAllBrands(data);
+    } catch (err) {
+      toastMessage(
+        err?.message || "Something goes wrong",
+        TOAST_TYPE.TYPE_ERROR
       );
+    }
   };
 
   const clearHandleFilter = () => {
@@ -263,73 +241,6 @@ function Inventory() {
                 {totalCounts?.totalItemInWarehouse}
               </span>
             </div>
-            {/* <div className="flex flex-col gap-3 p-10   w-full  md:w-3/12 sm:border-y-2  md:border-x-2 md:border-y-0">
-              <span className="font-semibold text-yellow-600 text-base">
-                Stores
-              </span>
-              <div className="flex gap-8">
-                <div className="flex flex-col">
-                  <span className="font-semibold text-gray-600 text-base">
-                    {stores.length}
-                  </span>
-                  <span className="font-thin text-gray-400 text-xs">
-                    Last 7 days
-                  </span>
-                </div>
-                <div className="flex flex-col">
-                  <span className="font-semibold text-gray-600 text-base">
-                    $0
-                  </span>
-                  <span className="font-thin text-gray-400 text-xs">
-                    Revenue
-                  </span>
-                </div>
-              </div>
-            </div> */}
-            {/* <div className="flex flex-col gap-3 p-10  w-full  md:w-3/12  sm:border-y-2 md:border-x-2 md:border-y-0">
-              <span className="font-semibold text-purple-600 text-base">
-                Top Selling
-              </span>
-              <div className="flex gap-8">
-                <div className="flex flex-col">
-                  <span className="font-semibold text-gray-600 text-base">
-                    0
-                  </span>
-                  <span className="font-thin text-gray-400 text-xs">
-                    Last 7 days
-                  </span>
-                </div>
-                <div className="flex flex-col">
-                  <span className="font-semibold text-gray-600 text-base">
-                    $0
-                  </span>
-                  <span className="font-thin text-gray-400 text-xs">Cost</span>
-                </div>
-              </div>
-            </div> */}
-            {/* <div className="flex flex-col gap-3 p-10  w-full  md:w-3/12  border-y-2  md:border-x-2 md:border-y-0">
-              <span className="font-semibold text-red-600 text-base">
-                Low Stocks
-              </span>
-              <div className="flex gap-8">
-                <div className="flex flex-col">
-                  <span className="font-semibold text-gray-600 text-base">
-                    0
-                  </span>
-                  <span className="font-thin text-gray-400 text-xs">
-                    Ordered
-                  </span>
-                </div>
-                <div className="flex flex-col">
-                  <span className="font-semibold text-gray-600 text-base">
-                    0
-                  </span>
-                  <span className="font-thin text-gray-400 text-xs">
-                    Not in Stock
-                  </span>
-                </div>
-              </div>
-            </div> */}
           </div>
         </div>
 
