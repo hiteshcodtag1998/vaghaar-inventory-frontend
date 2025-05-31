@@ -4,7 +4,12 @@ import UpdateProduct from "../components/UpdateProduct";
 import { ROLES, TOAST_TYPE } from "../utils/constant";
 import ConfirmationDialog from "../components/ConfirmationDialog";
 import { toastMessage } from "../utils/handler";
-import { MdEdit, MdDeleteForever, MdOutlineHideSource } from "react-icons/md";
+import {
+  MdEdit,
+  MdDeleteForever,
+  MdOutlineHideSource,
+  MdAdd,
+} from "react-icons/md";
 import { Tooltip } from "@mui/material";
 import StoreService from "../services/StoreService";
 import ProductService from "../services/ProductService";
@@ -219,31 +224,34 @@ function Inventory() {
   };
 
   return (
-    <div className="col-span-12 lg:col-span-10  flex justify-center">
-      <div className=" flex flex-col gap-5 w-11/12">
-        <div className="bg-white rounded p-3">
-          <span className="font-semibold px-4">Overall Inventory</span>
-
-          <div className=" flex flex-col md:flex-row md:justify-start md:items-center">
-            <div className="flex flex-col p-5 w-full md:w-3/12">
-              <span className="font-semibold text-blue-600 text-base">
+    <div className="col-span-12 lg:col-span-10 flex justify-center">
+      <div className="flex flex-col gap-6 w-11/12">
+        {/* Summary Card */}
+        <div className="bg-white rounded-lg shadow p-4">
+          <h2 className="font-semibold text-lg text-gray-800 mb-4">
+            Overall Inventory
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div>
+              <p className="text-blue-600 font-semibold text-sm">
                 Total Products
-              </span>
-              <span className="font-semibold text-gray-600 text-base">
+              </p>
+              <p className="text-gray-700 font-medium text-base">
                 {totalCounts?.totalProductCounts}
-              </span>
+              </p>
             </div>
-            <div className="flex flex-col p-5 w-full md:w-4/12">
-              <span className="font-semibold text-blue-600 text-base">
+            <div>
+              <p className="text-blue-600 font-semibold text-sm">
                 Total Item In Selected Warehouse
-              </span>
-              <span className="font-semibold text-gray-600 text-base">
+              </p>
+              <p className="text-gray-700 font-medium text-base">
                 {totalCounts?.totalItemInWarehouse}
-              </span>
+              </p>
             </div>
           </div>
         </div>
 
+        {/* Modals */}
         {showProductModal && (
           <AddProduct
             brands={brands}
@@ -260,133 +268,130 @@ function Inventory() {
           />
         )}
 
-        {/* Table  */}
-        <div className="overflow-x-auto rounded-lg border bg-white border-gray-200 ">
-          <div className="flex justify-between pt-5 pb-3 px-3">
-            <div className="flex gap-4 justify-center items-center ">
-              <span className="font-bold">Products</span>
-              <div className="flex justify-center items-center px-2 border-2 rounded-md ">
+        {/* Table Card */}
+        <div className="overflow-x-auto rounded-lg border bg-white border-gray-200 shadow-sm">
+          <div className="flex justify-between items-center p-4 border-b bg-white shadow-sm">
+            {/* Filters */}
+            <div className="flex flex-wrap gap-4 items-center">
+              <span className="text-lg font-semibold text-gray-900 whitespace-nowrap">
+                Products
+              </span>
+
+              {/* Search Box */}
+              <div className="flex items-center gap-2 border border-gray-300 rounded-md px-3 bg-white shadow-sm focus-within:ring-2 focus-within:ring-blue-400 transition">
                 <img
                   alt="search-icon"
-                  className="w-5 h-5"
+                  className="w-5 h-5 text-gray-400"
                   src={require("../assets/search-icon.png")}
                 />
                 <input
-                  className="border-none outline-none focus:border-none text-xs"
                   type="text"
                   placeholder="Search here"
                   value={searchTerm}
                   onChange={handleSearchTerm}
+                  className="bg-transparent text-sm text-gray-700 placeholder-gray-400 focus:outline-none border-0 h-full flex-1"
                 />
               </div>
-              <div>
-                <select
-                  id="fromWarehouseID"
-                  className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
-                  name="fromWarehouseID"
-                  value={selectWarehouse}
-                  onChange={(e) => handleWarehouse(e.target.value)}
-                >
-                  <option value="">Select Warehouse</option>
-                  {warehouses.map((element, index) => {
-                    return (
-                      <option key={element._id} value={element._id}>
-                        {element.name}
-                      </option>
-                    );
-                  })}
-                </select>
-              </div>
-              <div className="flex gap-4">
-                <button
-                  className="bg-blue-500 hover:bg-blue-700 text-white font-bold p-2 text-xs  rounded"
-                  onClick={clearHandleFilter}
-                >
-                  Clear filter
-                </button>
-              </div>
-            </div>
-            <div className="flex gap-4">
-              <button
-                className="bg-blue-500 hover:bg-blue-700 text-white font-bold p-2 text-xs  rounded"
-                onClick={addProductModalSetting}
+
+              {/* Select Dropdown */}
+              <select
+                id="fromWarehouseID"
+                name="fromWarehouseID"
+                value={selectWarehouse}
+                onChange={(e) => handleWarehouse(e.target.value)}
+                className="text-sm px-3 py-2 border border-gray-300 rounded-md bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-500 transition"
               >
-                {/* <Link to="/inventory/add-product">Add Product</Link> */}
-                Add Product
+                <option value="">Select Warehouse</option>
+                {warehouses.map((element) => (
+                  <option key={element._id} value={element._id}>
+                    {element.name}
+                  </option>
+                ))}
+              </select>
+
+              <button
+                onClick={clearHandleFilter}
+                className="text-xs font-semibold text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-md px-4 py-2 shadow-sm transition"
+              >
+                Clear filter
               </button>
             </div>
+
+            {/* Add Product */}
+            <button
+              onClick={addProductModalSetting}
+              className="bg-blue-600 hover:bg-blue-700 text-white font-semibold text-sm px-4 py-2 rounded-md shadow-md transition-all focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 flex items-center gap-2"
+            >
+              <MdAdd className="w-5 h-5" />
+              Add Product
+            </button>
           </div>
-          <table className="min-w-full divide-y-2 divide-gray-200 text-sm">
-            <thead>
+
+          {/* Table */}
+          <table className="min-w-full divide-y divide-gray-200 text-sm">
+            <thead className="bg-gray-50">
               <tr>
-                <th className="whitespace-nowrap px-4 py-2 text-left font-medium text-gray-900">
+                <th className="px-4 py-2 text-left font-medium text-gray-700">
                   Product
                 </th>
-                <th className="whitespace-nowrap px-4 py-2 text-left font-medium text-gray-900">
+                <th className="px-4 py-2 text-left font-medium text-gray-700">
                   Brand Name
                 </th>
-                <th className="whitespace-nowrap px-4 py-2 text-left font-medium text-gray-900">
+                <th className="px-4 py-2 text-left font-medium text-gray-700">
                   Code
                 </th>
-                <th className="whitespace-nowrap px-4 py-2 text-left font-medium text-gray-900">
+                <th className="px-4 py-2 text-left font-medium text-gray-700">
                   Stock
                 </th>
-                <th className="whitespace-nowrap px-4 py-2 text-left font-medium text-gray-900">
+                <th className="px-4 py-2 text-left font-medium text-gray-700">
                   Description
                 </th>
-                {/* <th className="whitespace-nowrap px-4 py-2 text-left font-medium text-gray-900">
-                  Availibility
-                </th> */}
                 {myLoginUser?.roleID?.name ===
                   ROLES.HIDE_MASTER_SUPER_ADMIN && (
-                  <th className="whitespace-nowrap px-4 py-2 text-left font-medium text-gray-900">
+                  <th className="px-4 py-2 text-left font-medium text-gray-700">
                     Hide
                   </th>
                 )}
-                <th className="whitespace-nowrap px-4 py-2 text-left font-medium text-gray-900">
+                <th className="px-4 py-2 text-left font-medium text-gray-700">
                   More
                 </th>
               </tr>
             </thead>
-
-            <tbody className="divide-y divide-gray-200">
-              {products?.length === 0 && (
-                <div className="bg-white w-50 h-fit flex flex-col gap-4 p-4 ">
-                  <div className="flex flex-col gap-3 justify-between items-start">
-                    <span>No data found</span>
-                  </div>
-                </div>
-              )}
-              {products.map((element, index) => {
-                return (
-                  <tr key={index}>
-                    <td className="whitespace-nowrap px-4 py-2  text-gray-900">
+            <tbody className="divide-y divide-gray-100">
+              {products?.length === 0 ? (
+                <tr>
+                  <td
+                    colSpan={7}
+                    className="px-4 py-4 text-center text-gray-500"
+                  >
+                    No data found
+                  </td>
+                </tr>
+              ) : (
+                products.map((element, index) => (
+                  <tr key={index} className="hover:bg-gray-50">
+                    <td className="px-4 py-2 text-gray-900">
                       {element?.name || element.productID.name}
                     </td>
-                    <td className="whitespace-nowrap px-4 py-2 text-gray-700">
+                    <td className="px-4 py-2 text-gray-700">
                       {element?.productID?.BrandID?.name ||
                         element?.BrandID?.name}
                     </td>
-                    <td className="whitespace-nowrap px-4 py-2  text-gray-900">
+                    <td className="px-4 py-2 text-gray-700">
                       {element?.productCode || element.productID.productCode}
                     </td>
-                    <td className="whitespace-nowrap px-4 py-2 text-gray-700">
-                      {element.stock}
-                    </td>
-                    <td className="whitespace-nowrap px-4 py-2 text-gray-700">
+                    <td className="px-4 py-2 text-gray-700">{element.stock}</td>
+                    <td className="px-4 py-2 text-gray-700">
                       {element.description}
                     </td>
-                    {/* <td className="whitespace-nowrap px-4 py-2 text-gray-700">
-                      {element.stock > 0 ? `In Stock (${element.stock})` : "Not in Stock"}
-                    </td> */}
 
-                    {/* First column: Hide/Show functionality, conditionally rendered */}
+                    {/* Hide Column */}
                     {myLoginUser?.roleID?.name ===
-                    ROLES.HIDE_MASTER_SUPER_ADMIN ? (
-                      <td className="px-4 py-2 text-gray-700 text-center">
+                      ROLES.HIDE_MASTER_SUPER_ADMIN && (
+                      <td className="px-4 py-2 text-center text-gray-700">
                         {element?.isActive ? (
                           <span
-                            className="text-green-700 cursor-pointer flex justify-center"
+                            className="text-green-600 cursor-pointer"
                             onClick={() => {
                               handleClickOpen();
                               setSelectedProduct(element);
@@ -399,33 +404,30 @@ function Inventory() {
                             <MdOutlineHideSource />
                           </span>
                         ) : (
-                          <span className="text-red-700">Hidden</span>
+                          <span className="text-red-600">Hidden</span>
                         )}
                       </td>
-                    ) : (
-                      <></> // Placeholder empty cell when the condition doesn't meet
                     )}
 
-                    {/* Second column: Edit/Delete functionality */}
+                    {/* Action Column */}
                     <td className="px-4 py-2 text-gray-700">
-                      <div className="flex">
+                      <div className="flex gap-2 items-center">
                         <Tooltip title="Edit" arrow>
                           <span
-                            className="text-green-700 cursor-pointer"
+                            className="text-green-600 cursor-pointer"
                             onClick={() => updateProductModalSetting(element)}
                           >
                             <MdEdit />
                           </span>
                         </Tooltip>
 
-                        {/* Conditional delete button for roles */}
                         {[
                           ROLES.HIDE_MASTER_SUPER_ADMIN,
                           ROLES.SUPER_ADMIN,
                         ].includes(myLoginUser?.roleID?.name) && (
                           <Tooltip title="Delete" arrow>
                             <span
-                              className="text-red-600 px-2 cursor-pointer"
+                              className="text-red-600 cursor-pointer"
                               onClick={() => {
                                 handleClickOpen();
                                 setSelectedProduct(element);
@@ -435,19 +437,21 @@ function Inventory() {
                                 });
                               }}
                             >
-                              <MdDeleteForever width={50} height={50} />
+                              <MdDeleteForever />
                             </span>
                           </Tooltip>
                         )}
                       </div>
                     </td>
                   </tr>
-                );
-              })}
+                ))
+              )}
             </tbody>
           </table>
         </div>
       </div>
+
+      {/* Confirmation Dialog */}
       <ConfirmationDialog
         open={open}
         title={dialogData?.title || ""}

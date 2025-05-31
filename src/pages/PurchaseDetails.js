@@ -10,6 +10,10 @@ import UpdatePurchaseDetails from "../components/UpdatePurchaseDetails";
 import { MdDeleteForever, MdEdit } from "react-icons/md";
 import moment from "moment-timezone";
 import ConfirmationDialog from "../components/ConfirmationDialog";
+import BrandService from "../services/BrandService";
+import WarehouseService from "../services/WarehouseService";
+import ProductService from "../services/ProductService";
+import PurchaseService from "../services/PurchaseService";
 
 function PurchaseDetails() {
   const [showPurchaseModal, setPurchaseModal] = useState(false);
@@ -29,78 +33,77 @@ function PurchaseDetails() {
   const authContext = useContext(AuthContext);
 
   useEffect(() => {
-    fetchPurchaseData();
-    fetchProductsData();
-    fetchBrandData();
-    fetchWarehouseData();
+    const fetchAllData = async () => {
+      try {
+        await Promise.all([
+          fetchPurchaseData(),
+          fetchProductsData(),
+          fetchBrandData(),
+          fetchWarehouseData(),
+        ]);
+      } catch (err) {
+        toastMessage(
+          err?.message || "Something goes wrong",
+          TOAST_TYPE.TYPE_ERROR
+        );
+      }
+    };
+
+    fetchAllData();
   }, [updatePage]);
 
-  // Fetching Data of All Purchase items
-  const fetchPurchaseData = () => {
-    fetch(`${process.env.REACT_APP_API_BASE_URL}purchase/get`, {
-      headers: { role: myLoginUser?.roleID?.name, requestBy: myLoginUser?._id },
-    })
-      .then((response) => response.json())
-      .then((data) => {
-        setAllPurchaseData(data);
-      })
-      .catch((err) =>
-        toastMessage(
-          err?.message || "Something goes wrong",
-          TOAST_TYPE.TYPE_ERROR
-        )
+  const fetchPurchaseData = async () => {
+    try {
+      const data = await PurchaseService.getAll(
+        myLoginUser?.roleID?.name,
+        myLoginUser?._id
       );
+      setAllPurchaseData(data);
+    } catch (err) {
+      toastMessage(
+        err?.message || "Something goes wrong",
+        TOAST_TYPE.TYPE_ERROR
+      );
+    }
   };
 
-  // Fetching Data of All Brrand items
-  const fetchBrandData = () => {
-    fetch(`${process.env.REACT_APP_API_BASE_URL}brand/get`, {
-      headers: { role: myLoginUser?.roleID?.name },
-    })
-      .then((response) => response.json())
-      .then((data) => {
-        setAllBrands(data);
-      })
-      .catch((err) =>
-        toastMessage(
-          err?.message || "Something goes wrong",
-          TOAST_TYPE.TYPE_ERROR
-        )
+  const fetchBrandData = async () => {
+    try {
+      const data = await BrandService.getAll(myLoginUser?.roleID?.name);
+      setAllBrands(data);
+    } catch (err) {
+      toastMessage(
+        err?.message || "Something goes wrong",
+        TOAST_TYPE.TYPE_ERROR
       );
+    }
   };
 
-  // Fetching Data of All Warehouse items
-  const fetchWarehouseData = () => {
-    fetch(`${process.env.REACT_APP_API_BASE_URL}warehouse/get`, {
-      headers: { role: myLoginUser?.roleID?.name },
-    })
-      .then((response) => response.json())
-      .then((data) => {
-        setAllWarehouses(data);
-      })
-      .catch((err) =>
-        toastMessage(
-          err?.message || "Something goes wrong",
-          TOAST_TYPE.TYPE_ERROR
-        )
+  const fetchWarehouseData = async () => {
+    try {
+      const data = await WarehouseService.getAll(
+        myLoginUser?.roleID?.name,
+        myLoginUser?._id
       );
+      setAllWarehouses(data);
+    } catch (err) {
+      toastMessage(
+        err?.message || "Something goes wrong",
+        TOAST_TYPE.TYPE_ERROR
+      );
+    }
   };
 
-  // Fetching Data of All Products
-  const fetchProductsData = () => {
-    fetch(`${process.env.REACT_APP_API_BASE_URL}product/get`, {
-      headers: { role: myLoginUser?.roleID?.name },
-    })
-      .then((response) => response.json())
-      .then((data) => {
-        setAllProducts(data);
-      })
-      .catch((err) =>
-        toastMessage(
-          err?.message || "Something goes wrong",
-          TOAST_TYPE.TYPE_ERROR
-        )
+  const fetchProductsData = async () => {
+    try {
+      const data = await ProductService.getAll(myLoginUser?.roleID?.name);
+      setAllProducts(data);
+    } catch (err) {
+      toastMessage(
+        err?.message || "Something goes wrong",
+        TOAST_TYPE.TYPE_ERROR
       );
+    }
   };
 
   // Modal for Purchase Add
