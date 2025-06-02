@@ -12,6 +12,15 @@ const ProductService = {
       },
     }),
 
+  update: (product, role, requestBy) =>
+    BaseService.request(`${prefix}/update`, "POST", product, {
+      headers: {
+        role,
+        requestBy,
+        "Content-Type": "application/json",
+      },
+    }),
+
   // Fetch all products
   getAll: (role) =>
     BaseService.request(`${prefix}/get`, "GET", null, {

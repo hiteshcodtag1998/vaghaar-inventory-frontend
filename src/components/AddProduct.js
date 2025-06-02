@@ -14,7 +14,6 @@ export default function AddProduct({
   brands,
 }) {
   const authContext = useContext(AuthContext);
-  const myLoginUser = JSON.parse(localStorage.getItem("user"));
 
   const [products, setProducts] = useState([
     {
@@ -57,10 +56,10 @@ export default function AddProduct({
     try {
       await ProductService.add(
         products,
-        myLoginUser?.roleID?.name,
-        myLoginUser?._id
+        authContext?.user?.roleID?.name,
+        authContext?.user?._id
       );
-      toastMessage("Product ADDED", TOAST_TYPE.TYPE_SUCCESS);
+      toastMessage("Product Added", TOAST_TYPE.TYPE_SUCCESS);
       handlePageUpdate();
       addProductModalSetting();
     } catch (err) {
