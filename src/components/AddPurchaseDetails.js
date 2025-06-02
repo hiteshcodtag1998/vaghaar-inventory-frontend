@@ -1,4 +1,4 @@
-import { Fragment, useRef, useState } from "react";
+import { Fragment, useContext, useRef, useState } from "react";
 import { Dialog, Transition } from "@headlessui/react";
 import { PlusIcon } from "@heroicons/react/24/outline";
 import { ROLES, TOAST_TYPE } from "../utils/constant";
@@ -11,15 +11,17 @@ import moment from "moment";
 import axios from "axios";
 import { FiTrash } from "react-icons/fi";
 import PurchaseService from "../services/PurchaseService";
+import AuthContext from "../AuthContext";
 
 export default function AddPurchaseDetails({
   addSaleModalSetting,
   products,
   handlePageUpdate,
-  authContext,
   brands,
   warehouses,
 }) {
+  const authContext = useContext(AuthContext);
+
   const [purchase, setPurchase] = useState([
     {
       userID: authContext.user?._id,
@@ -35,7 +37,6 @@ export default function AddPurchaseDetails({
   const cancelButtonRef = useRef(null);
   const [showBrandModal, setBrandModal] = useState(false);
   const [pdfOpen, setPdfOpen] = useState(false);
-  const myLoginUser = JSON.parse(localStorage.getItem("user"));
 
   // Handling Input Change for input fields
   const handleInputChange = (index, key, value) => {
@@ -113,8 +114,8 @@ export default function AddPurchaseDetails({
       purchasePayload,
       {
         headers: {
-          role: myLoginUser?.roleID?.name,
-          requestBy: myLoginUser?._id,
+          role: authContext?.user?.roleID?.name,
+          requestBy: authContext?.user?._id,
         },
         responseType: "arraybuffer",
         "Content-Type": "application/json",
@@ -172,8 +173,8 @@ export default function AddPurchaseDetails({
     try {
       await PurchaseService.add(
         purchasePayload,
-        myLoginUser?.roleID?.name,
-        myLoginUser?._id
+        authContext?.user?.roleID?.name,
+        authContext?.user?._id
       );
       toastMessage("Purchase ADDED", TOAST_TYPE.TYPE_SUCCESS);
       setPdfOpen(true);
@@ -352,7 +353,7 @@ export default function AddPurchaseDetails({
                           <div>
                             <label
                               htmlFor={`quantityPurchased-${index}`}
-                              className="block text-sm font-medium text-gray-700"
+                              className="block text-sm font-medium text-gray-700 text-left"
                             >
                               Quantity Purchased
                             </label>
@@ -498,7 +499,7 @@ export default function AddPurchaseDetails({
                                     ![
                                       ROLES.HIDE_MASTER_SUPER_ADMIN,
                                       ROLES.SUPER_ADMIN,
-                                    ].includes(myLoginUser?.roleID?.name)
+                                    ].includes(authContext?.user?.roleID?.name)
                                   }
                                   className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5"
                                   onChange={(date) => {
@@ -556,6 +557,7 @@ export default function AddPurchaseDetails({
                       </button>
                     </div>
                   )}
+
                   <div className="bg-gray-50 px-4 py-3 sm:flex sm:flex-row-reverse sm:px-6">
                     <button
                       type="button"
@@ -576,6 +578,7 @@ export default function AddPurchaseDetails({
                       Cancel
                     </button>
                   </div>
+
                   {showBrandModal && (
                     <AddBrand
                       addBrandModalSetting={() => {

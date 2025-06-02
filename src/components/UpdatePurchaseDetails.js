@@ -100,7 +100,7 @@ export default function UpdatePurchaseDetails({
     <Transition.Root show={open} as={Fragment}>
       <Dialog
         as="div"
-        className="relative z-10"
+        className="relative z-50"
         initialFocus={cancelButtonRef}
         onClose={setOpen}
       >
@@ -121,213 +121,202 @@ export default function UpdatePurchaseDetails({
             <Transition.Child
               as={Fragment}
               enter="ease-out duration-300"
-              enterFrom="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
-              enterTo="opacity-100 translate-y-0 sm:scale-100"
+              enterFrom="opacity-0 scale-95"
+              enterTo="opacity-100 scale-100"
               leave="ease-in duration-200"
-              leaveFrom="opacity-100 translate-y-0 sm:scale-100"
-              leaveTo="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+              leaveFrom="opacity-100 scale-100"
+              leaveTo="opacity-0 scale-95"
             >
-              <Dialog.Panel className="relative transform overflow-hidden rounded-lg bg-white text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg overflow-y-scroll">
-                <div className="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
-                  <div className="sm:flex sm:items-start">
-                    <div className="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left ">
-                      <Dialog.Title
-                        as="h3"
-                        className="text-lg  py-4 font-semibold leading-6 text-gray-900 "
+              <Dialog.Panel className="w-full max-w-3xl transform overflow-hidden rounded-2xl bg-white p-6 shadow-xl transition-all">
+                <div className="mb-6 space-y-1">
+                  <div className="flex items-center gap-3">
+                    {/* Title */}
+                    <h2 className="text-xl font-semibold text-gray-900">
+                      Purchase Details
+                    </h2>
+                  </div>
+                </div>
+
+                <div className="space-y-10">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label
+                        htmlFor="productID"
+                        className="block text-sm font-medium text-gray-700 text-left"
                       >
-                        Purchase Details
-                      </Dialog.Title>
-                      <form action="#">
-                        <div className="grid gap-4 mb-4 sm:grid-cols-2">
-                          <div>
-                            <label
-                              htmlFor="productID"
-                              className="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
-                            >
-                              Product Name
-                            </label>
-                            <select
-                              id="productID"
-                              className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
-                              name="productID"
-                              value={purchase.productID}
-                              disabled={true}
-                              onChange={(e) =>
-                                handleInputChange(e.target.name, e.target.value)
-                              }
-                            >
-                              <option selected="">Select Products</option>
-                              {products.map((element, index) => (
-                                <option key={element._id} value={element._id}>
-                                  {element.name}
-                                </option>
-                              ))}
-                            </select>
-                          </div>
-                          <div>
-                            <label
-                              htmlFor="brandID"
-                              className="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
-                            >
-                              Brand Name
-                            </label>
-                            <select
-                              id="brandID"
-                              className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
-                              name="brandID"
-                              value={purchase?.brandID || ""}
-                              disabled={true}
-                              onChange={(e) =>
-                                handleInputChange(e.target.name, e.target.value)
-                              }
-                            >
-                              <option selected="">Select Brand</option>
-                              {brands.map((element, index) => (
-                                <option key={element._id} value={element._id}>
-                                  {element.name}
-                                </option>
-                              ))}
-                            </select>
-                          </div>
-                          <div>
-                            <label
-                              htmlFor="quantityPurchased"
-                              className="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
-                            >
-                              Quantity Purchased
-                            </label>
-                            <input
-                              type="number"
-                              name="quantityPurchased"
-                              id="quantityPurchased"
-                              value={purchase.quantityPurchased}
-                              disabled={
-                                ![
-                                  ROLES.HIDE_MASTER_SUPER_ADMIN,
-                                  ROLES.SUPER_ADMIN,
-                                ].includes(myLoginUser?.roleID?.name)
-                              }
-                              onChange={(e) =>
-                                handleInputChange(e.target.name, e.target.value)
-                              }
-                              className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
-                              placeholder="0 - 999"
-                            />
-                          </div>
-                          <div>
-                            <label
-                              htmlFor="supplierName"
-                              className="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
-                            >
-                              Supplier Name
-                            </label>
-                            <input
-                              type="text"
-                              name="supplierName"
-                              id="supplierName"
-                              value={purchase.supplierName}
-                              onChange={(e) =>
-                                handleInputChange(e.target.name, e.target.value)
-                              }
-                              className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
-                              placeholder="Enter Supplier Name"
-                            />
-                          </div>
+                        Product Name
+                      </label>
+                      <select
+                        id="productID"
+                        className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5"
+                        name="productID"
+                        value={purchase.productID}
+                        disabled={true}
+                        onChange={(e) =>
+                          handleInputChange(e.target.name, e.target.value)
+                        }
+                      >
+                        <option selected="">Select Products</option>
+                        {products.map((element, index) => (
+                          <option key={element._id} value={element._id}>
+                            {element.name}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    <div>
+                      <label
+                        htmlFor="brandID"
+                        className="block text-sm font-medium text-gray-700 text-left"
+                      >
+                        Brand Name
+                      </label>
+                      <select
+                        id="brandID"
+                        className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
+                        name="brandID"
+                        value={purchase?.brandID || ""}
+                        disabled={true}
+                        onChange={(e) =>
+                          handleInputChange(e.target.name, e.target.value)
+                        }
+                      >
+                        <option selected="">Select Brand</option>
+                        {brands.map((element, index) => (
+                          <option key={element._id} value={element._id}>
+                            {element.name}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    <div>
+                      <label
+                        htmlFor="quantityPurchased"
+                        className="block text-sm font-medium text-gray-700 text-left"
+                      >
+                        Quantity Purchased
+                      </label>
+                      <input
+                        type="number"
+                        name="quantityPurchased"
+                        id="quantityPurchased"
+                        value={purchase.quantityPurchased}
+                        disabled={
+                          ![
+                            ROLES.HIDE_MASTER_SUPER_ADMIN,
+                            ROLES.SUPER_ADMIN,
+                          ].includes(myLoginUser?.roleID?.name)
+                        }
+                        onChange={(e) =>
+                          handleInputChange(e.target.name, e.target.value)
+                        }
+                        className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
+                        placeholder="0 - 999"
+                      />
+                    </div>
+                    <div>
+                      <label
+                        htmlFor="supplierName"
+                        className="block text-sm font-medium text-gray-700 text-left"
+                      >
+                        Supplier Name
+                      </label>
+                      <input
+                        type="text"
+                        name="supplierName"
+                        id="supplierName"
+                        value={purchase.supplierName}
+                        onChange={(e) =>
+                          handleInputChange(e.target.name, e.target.value)
+                        }
+                        className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
+                        placeholder="Enter Supplier Name"
+                      />
+                    </div>
 
-                          <div>
-                            <label
-                              htmlFor="warehouseID"
-                              className="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
-                            >
-                              Warehouse Name
-                            </label>
-                            <select
-                              id="warehouseID"
-                              className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
-                              name="warehouseID"
-                              disabled={true}
-                              onChange={(e) =>
-                                handleInputChange(e.target.name, e.target.value)
-                              }
-                              value={purchase.warehouseID}
-                            >
-                              <option selected="">Select Warehouse</option>
-                              {warehouses.map((element, index) => {
-                                return (
-                                  <option key={element._id} value={element._id}>
-                                    {element.name}
-                                  </option>
-                                );
-                              })}
-                            </select>
-                          </div>
+                    <div>
+                      <label
+                        htmlFor="warehouseID"
+                        className="block text-sm font-medium text-gray-700 text-left"
+                      >
+                        Warehouse Name
+                      </label>
+                      <select
+                        id="warehouseID"
+                        className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
+                        name="warehouseID"
+                        disabled={true}
+                        onChange={(e) =>
+                          handleInputChange(e.target.name, e.target.value)
+                        }
+                        value={purchase.warehouseID}
+                      >
+                        <option selected="">Select Warehouse</option>
+                        {warehouses.map((element, index) => {
+                          return (
+                            <option key={element._id} value={element._id}>
+                              {element.name}
+                            </option>
+                          );
+                        })}
+                      </select>
+                    </div>
 
-                          <div className="h-fit w-full">
-                            <label
-                              className="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
-                              htmlFor="purchaseDate"
-                            >
-                              Purchase Date
-                            </label>
-                            <DatePicker
-                              dateFormat="dd-MM-yyyy HH:mm"
-                              selected={
-                                purchase.purchaseDate
-                                  ? new Date(purchase.purchaseDate)
-                                  : ""
-                              }
-                              placeholderText="dd-mm-yyyy"
-                              maxDate={new Date()}
-                              showTimeSelect
-                              timeIntervals={1}
-                              disabled={
-                                ![
-                                  ROLES.HIDE_MASTER_SUPER_ADMIN,
-                                  ROLES.SUPER_ADMIN,
-                                ].includes(myLoginUser?.roleID?.name)
-                              }
-                              className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
-                              onChange={(date) => {
-                                handleInputChange("purchaseDate", date);
-                              }}
-                            />
-                            {/* <input
-                                                            className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
-                                                            type="date"
-                                                            id="purchaseDate"
-                                                            name="purchaseDate"
-                                                            value={purchase.purchaseDate}
-                                                            onChange={(e) =>
-                                                                handleInputChange(e.target.name, e.target.value)
-                                                            }
-                                                        /> */}
-                          </div>
-                          <div>
-                            <label
-                              htmlFor="referenceNo"
-                              className="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
-                            >
-                              Reference Number
-                            </label>
-                            <input
-                              type="text"
-                              name="referenceNo"
-                              id="referenceNo"
-                              value={purchase.referenceNo}
-                              onChange={(e) =>
-                                handleInputChange(e.target.name, e.target.value)
-                              }
-                              className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
-                              placeholder="Enter Reference Number"
-                            />
-                          </div>
-                        </div>
-                        <div className="flex items-center space-x-4"></div>
-                      </form>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="h-fit w-full">
+                        <label
+                          className="block text-sm font-medium text-gray-700"
+                          htmlFor="purchaseDate"
+                        >
+                          Purchase Date
+                        </label>
+                        <DatePicker
+                          dateFormat="dd-MM-yyyy HH:mm"
+                          selected={
+                            purchase.purchaseDate
+                              ? new Date(purchase.purchaseDate)
+                              : ""
+                          }
+                          placeholderText="dd-mm-yyyy"
+                          maxDate={new Date()}
+                          showTimeSelect
+                          timeIntervals={1}
+                          disabled={
+                            ![
+                              ROLES.HIDE_MASTER_SUPER_ADMIN,
+                              ROLES.SUPER_ADMIN,
+                            ].includes(myLoginUser?.roleID?.name)
+                          }
+                          className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5"
+                          onChange={(date) => {
+                            handleInputChange("purchaseDate", date);
+                          }}
+                        />
+                      </div>
+                      <div>
+                        <label
+                          htmlFor="referenceNo"
+                          className="block text-sm font-medium text-gray-700 text-left"
+                        >
+                          Reference Number
+                        </label>
+                        <input
+                          type="text"
+                          name="referenceNo"
+                          id="referenceNo"
+                          value={purchase.referenceNo}
+                          onChange={(e) =>
+                            handleInputChange(e.target.name, e.target.value)
+                          }
+                          className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
+                          placeholder="Enter Reference Number"
+                        />
+                      </div>
                     </div>
                   </div>
                 </div>
-                <div className="bg-gray-50 px-4 py-3 sm:flex sm:flex-row-reverse sm:px-6">
+
+                <div className="bg-gray-50 mt-4 px-4 py-3 sm:flex sm:flex-row-reverse sm:px-6">
                   <button
                     type="button"
                     className="inline-flex w-full justify-center rounded-md bg-blue-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-500 sm:ml-3 sm:w-auto"

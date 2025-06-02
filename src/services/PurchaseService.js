@@ -13,6 +13,11 @@ const PurchaseService = {
     return BaseService.request(`${prefix}/get`, "GET", null, { headers });
   },
 
+  downloadPDF: (data) =>
+    BaseService.request(`${prefix}/purchase-pdf-download`, "POST", data, {
+      responseType: "arraybuffer",
+    }),
+
   // Get total purchase amount
   getTotalPurchaseAmount: () =>
     BaseService.request(`${prefix}/get/totalpurchaseamount`, "GET", null),

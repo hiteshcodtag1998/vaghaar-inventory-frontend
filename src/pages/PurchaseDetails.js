@@ -7,7 +7,7 @@ import { toastMessage } from "../utils/handler";
 import { FaDownload } from "react-icons/fa6";
 import { CircularProgress, Tooltip } from "@mui/material";
 import UpdatePurchaseDetails from "../components/UpdatePurchaseDetails";
-import { MdDeleteForever, MdEdit } from "react-icons/md";
+import { MdAdd, MdDeleteForever, MdEdit } from "react-icons/md";
 import moment from "moment-timezone";
 import ConfirmationDialog from "../components/ConfirmationDialog";
 import BrandService from "../services/BrandService";
@@ -124,22 +124,13 @@ function PurchaseDetails() {
 
   const handleDownload = async (data, index) => {
     try {
-      // Set the loader to true for the specific index
       setPdfBtnLoaderIndexes((prevIndexes) => {
         const newIndexes = [...prevIndexes];
         newIndexes[index] = true;
         return newIndexes;
       });
 
-      const response = await axios.post(
-        `${process.env.REACT_APP_API_BASE_URL}purchase/purchase-pdf-download`,
-        data,
-        {
-          responseType: "arraybuffer",
-        }
-      );
-      // Assuming the server returns the PDF content as a blob
-      // setPdfData(new Blob([response.data], { type: 'application/pdf' }));
+      const response = await PurchaseService.downloadPDF(data);
 
       const url = window.URL.createObjectURL(
         new Blob([response.data], { type: "application/pdf" })
@@ -151,15 +142,13 @@ function PurchaseDetails() {
       a.click();
       document.body.removeChild(a);
       window.open(url, "_blank");
-      // After download is complete, set the loader back to false for the specific index
+
       setPdfBtnLoaderIndexes((prevIndexes) => {
         const newIndexes = [...prevIndexes];
         newIndexes[index] = false;
         return newIndexes;
       });
-      // window.URL.revokeObjectURL(url);
     } catch (error) {
-      // After download is complete, set the loader back to false for the specific index
       setPdfBtnLoaderIndexes((prevIndexes) => {
         const newIndexes = [...prevIndexes];
         newIndexes[index] = false;
@@ -204,7 +193,6 @@ function PurchaseDetails() {
             products={products}
             brands={brands}
             handlePageUpdate={handlePageUpdate}
-            authContext={authContext}
             warehouses={warehouses}
           />
         )}
@@ -221,133 +209,126 @@ function PurchaseDetails() {
         )}
         {/* Table  */}
         <div className="overflow-x-auto rounded-lg border bg-white border-gray-200 ">
-          <div className="flex justify-between pt-5 pb-3 px-3">
-            <div className="flex gap-4 justify-center items-center ">
-              <span className="font-bold">Purchase</span>
-            </div>
-            <div className="flex gap-4">
-              <button
-                className="bg-blue-500 hover:bg-blue-700 text-white font-bold p-2 text-xs  rounded"
-                onClick={addSaleModalSetting}
-              >
-                {/* <Link to="/inventory/add-product">Add Product</Link> */}
-                Add Purchase
-              </button>
-            </div>
+          <div className="flex items-center justify-between px-4 py-4 border-b bg-white rounded-t-md">
+            <h2 className="text-lg font-semibold text-gray-800">
+              Manage Purchase
+            </h2>
+            <button
+              onClick={addSaleModalSetting}
+              className="inline-flex items-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 transition-all"
+            >
+              <MdAdd className="w-5 h-5" />
+              Add Purchase
+            </button>
           </div>
-          <table className="min-w-full divide-y-2 divide-gray-200 text-sm">
-            <thead>
+
+          <table className="min-w-full divide-y divide-gray-200 text-sm">
+            <thead className="bg-gray-50">
               <tr>
-                <th className="whitespace-nowrap px-4 py-2 text-left font-medium text-gray-900">
+                <th className="px-4 py-2 text-left font-medium text-gray-700">
                   Product Name
                 </th>
-                <th className="whitespace-nowrap px-4 py-2 text-left font-medium text-gray-900">
+                <th className="px-4 py-2 text-left font-medium text-gray-700">
                   Brand Name
                 </th>
-                <th className="whitespace-nowrap px-4 py-2 text-left font-medium text-gray-900">
+                <th className="px-4 py-2 text-left font-medium text-gray-700">
                   Quantity Purchased
                 </th>
-                <th className="whitespace-nowrap px-4 py-2 text-left font-medium text-gray-900">
+                <th className="px-4 py-2 text-left font-medium text-gray-700">
                   Supplier Name
                 </th>
-                <th className="whitespace-nowrap px-4 py-2 text-left font-medium text-gray-900">
+                <th className="px-4 py-2 text-left font-medium text-gray-700">
                   Warehouse Name
                 </th>
                 {myLoginUser?.roleID?.name ===
                   ROLES.HIDE_MASTER_SUPER_ADMIN && (
-                  <th className="whitespace-nowrap px-4 py-2 text-left font-medium text-gray-900">
+                  <th className="px-4 py-2 text-left font-medium text-gray-700">
                     Status
                   </th>
                 )}
-                <th className="whitespace-nowrap px-4 py-2 text-left font-medium text-gray-900">
+                <th className="px-4 py-2 text-left font-medium text-gray-700">
                   Purchase Date
                 </th>
-                <th className="whitespace-nowrap text-left font-medium text-gray-900">
-                  Action
+                <th className="px-4 py-2 text-left font-medium text-gray-700">
+                  Actions
                 </th>
-                {/* <th className="whitespace-nowrap px-4 py-2 text-left font-medium text-gray-900">
-                  Total Purchase Amount
-                </th> */}
               </tr>
             </thead>
 
-            <tbody className="divide-y divide-gray-200">
-              {purchase?.length === 0 && (
-                <div className="bg-white w-50 h-fit flex flex-col gap-4 p-4 ">
-                  <div className="flex flex-col gap-3 justify-between items-start">
-                    <span>No data found</span>
-                  </div>
-                </div>
-              )}
-              {purchase.map((element, index) => {
-                return (
-                  <tr key={element._id}>
-                    <td className="whitespace-nowrap px-4 py-2  text-gray-900">
-                      {element.ProductID?.name || ""}
+            <tbody className="divide-y divide-gray-100">
+              {purchase?.length === 0 ? (
+                <tr>
+                  <td
+                    colSpan={8}
+                    className="px-4 py-4 text-center text-gray-500"
+                  >
+                    No data found
+                  </td>
+                </tr>
+              ) : (
+                purchase.map((element, index) => (
+                  <tr key={element._id} className="hover:bg-gray-50">
+                    <td className="px-4 py-2 text-gray-900">
+                      {element?.ProductID?.name || ""}
                     </td>
-                    <td className="whitespace-nowrap px-4 py-2  text-gray-900">
+                    <td className="px-4 py-2 text-gray-700">
                       {element?.BrandID?.name || ""}
                     </td>
-                    <td className="whitespace-nowrap px-4 py-2 text-gray-700">
-                      {element.QuantityPurchased}
+                    <td className="px-4 py-2 text-gray-700">
+                      {element?.QuantityPurchased}
                     </td>
-                    <td className="whitespace-nowrap px-4 py-2  text-gray-900">
+                    <td className="px-4 py-2 text-gray-700">
                       {element?.SupplierName || ""}
                     </td>
-                    <td className="whitespace-nowrap px-4 py-2  text-gray-900">
+                    <td className="px-4 py-2 text-gray-700">
                       {element?.warehouseID?.name || ""}
                     </td>
                     {myLoginUser?.roleID?.name ===
                       ROLES.HIDE_MASTER_SUPER_ADMIN && (
-                      <td className="whitespace-nowrap px-4 py-2  text-gray-900">
-                        {element?.isActive ? "Availble" : "Deleted"}
+                      <td className="px-4 py-2 text-gray-700">
+                        {element?.isActive ? "Available" : "Deleted"}
                       </td>
                     )}
-                    <td className="whitespace-nowrap px-4 py-2 text-gray-700">
-                      {
-                        new Date(element.PurchaseDate).toLocaleDateString() ===
-                        new Date().toLocaleDateString()
-                          ? "Today"
-                          : element?.PurchaseDate
-                          ? moment
-                              .tz(element.PurchaseDate, moment.tz.guess())
-                              .format("DD-MM-YYYY HH:mm")
-                          : null
-                        // moment(element.PurchaseDate, "YYYY-MM-DD").format("DD-MM-YYYY")
-                      }
+                    <td className="px-4 py-2 text-gray-700">
+                      {new Date(element?.PurchaseDate).toLocaleDateString() ===
+                      new Date().toLocaleDateString()
+                        ? "Today"
+                        : element?.PurchaseDate
+                        ? moment
+                            .tz(element.PurchaseDate, moment.tz.guess())
+                            .format("DD-MM-YYYY HH:mm")
+                        : ""}
                     </td>
-                    <td>
-                      <div className="flex">
+                    <td className="px-4 py-2 text-gray-700">
+                      <div className="flex gap-2 items-center">
                         <Tooltip title="Edit" arrow>
                           <span
-                            className="text-green-700 cursor-pointer"
+                            className="text-green-600 cursor-pointer"
                             onClick={() => updatePurchaseModalSetting(element)}
                           >
                             <MdEdit />
                           </span>
                         </Tooltip>
+
                         <Tooltip title="Download Purchase Note" arrow>
-                          <span className="text-green-700 px-2 flex">
+                          <span className="text-green-600 cursor-pointer">
                             {pdfBtnLoaderIndexes[index] ? (
                               <CircularProgress size={20} />
                             ) : (
                               <FaDownload
-                                className={`cursor-pointer ${
-                                  pdfBtnLoaderIndexes[index] && "block"
-                                }`}
                                 onClick={() => handleDownload(element, index)}
                               />
                             )}
                           </span>
                         </Tooltip>
-                        {/* Conditional delete button for roles */}
+
                         {[
                           ROLES.HIDE_MASTER_SUPER_ADMIN,
                           ROLES.SUPER_ADMIN,
                         ].includes(myLoginUser?.roleID?.name) && (
                           <Tooltip title="Delete" arrow>
                             <span
-                              className="text-red-600 pr-2 cursor-pointer"
+                              className="text-red-600 cursor-pointer"
                               onClick={() => {
                                 handleClickOpen();
                                 setSelectedProduct(element);
@@ -357,18 +338,15 @@ function PurchaseDetails() {
                                 });
                               }}
                             >
-                              <MdDeleteForever width={50} height={50} />
+                              <MdDeleteForever />
                             </span>
                           </Tooltip>
                         )}
                       </div>
                     </td>
-                    {/* <td className="whitespace-nowrap px-4 py-2 text-gray-700">
-                      ${element.TotalPurchaseAmount}
-                    </td> */}
                   </tr>
-                );
-              })}
+                ))
+              )}
             </tbody>
           </table>
         </div>
