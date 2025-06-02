@@ -5,7 +5,7 @@ const API_BASE_URL = process.env.REACT_APP_API_BASE_URL;
 
 const axiosInstance = axios.create({
   baseURL: API_BASE_URL,
-  withCredentials: true, // send cookies (e.g., HttpOnly JWT)
+  withCredentials: true,
   headers: {
     "Content-Type": "application/json",
   },
@@ -31,6 +31,13 @@ const BaseService = {
         error?.response?.data?.message ||
         error?.message ||
         "Something went wrong";
+
+      console.log("Message", message);
+
+      if (message === "Access Denied. No token provided.") {
+        window.location.replace("/login");
+      }
+
       throw new Error(message);
     }
   },

@@ -106,7 +106,7 @@ export default function AddProduct({
           leaveFrom="opacity-100"
           leaveTo="opacity-0"
         >
-          <div className="fixed inset-0 bg-black/50" />
+          <div className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" />
         </Transition.Child>
 
         <div className="fixed inset-0 z-50 overflow-y-auto">
@@ -129,11 +129,11 @@ export default function AddProduct({
                       <div
                         className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-100 cursor-pointer"
                         aria-label="Create new product"
+                        onClick={handleAddForm}
                       >
                         <PlusIcon
                           className="h-5 w-5 text-blue-600"
                           aria-hidden="true"
-                          onClick={handleAddForm}
                         />
                       </div>
 
