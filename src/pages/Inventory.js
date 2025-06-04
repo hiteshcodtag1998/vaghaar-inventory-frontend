@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import AddProduct from "../components/AddProduct";
 import UpdateProduct from "../components/UpdateProduct";
 import { ROLES, TOAST_TYPE } from "../utils/constant";
@@ -15,8 +15,11 @@ import StoreService from "../services/StoreService";
 import ProductService from "../services/ProductService";
 import WarehouseService from "../services/WarehouseService";
 import BrandService from "../services/BrandService";
+import AuthContext from "../AuthContext";
 
 function Inventory() {
+  const authContext = useContext(AuthContext);
+
   const [showProductModal, setShowProductModal] = useState(false);
   const [showUpdateModal, setShowUpdateModal] = useState(false);
   const [updateProduct, setUpdateProduct] = useState([]);
@@ -35,7 +38,6 @@ function Inventory() {
     totalItemInWarehouse: 0,
   });
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
-  const myLoginUser = JSON.parse(localStorage.getItem("user"));
 
   useEffect(() => {
     fetchProductsData();
@@ -65,8 +67,8 @@ function Inventory() {
   const fetchWarehouseData = async () => {
     try {
       const data = await WarehouseService.getAll(
-        myLoginUser?.roleID?.name,
-        myLoginUser?._id
+        authContext?.user?.roleID?.name,
+        authContext?.user?._id
       );
       setAllWarehouses(data);
     } catch (err) {
@@ -80,7 +82,7 @@ function Inventory() {
   const fetchTotalCountsData = async (warehouse = "") => {
     try {
       const data = await ProductService.getTotalCounts(
-        myLoginUser?.roleID?.name,
+        authContext?.user?.roleID?.name,
         warehouse
       );
       setTotalCounts(data);
@@ -94,7 +96,7 @@ function Inventory() {
 
   const fetchProductsData = async () => {
     try {
-      const data = await ProductService.getAll(myLoginUser?.roleID?.name);
+      const data = await ProductService.getAll(authContext?.user?.roleID?.name);
       setAllProducts(data);
     } catch (err) {
       toastMessage(
@@ -107,7 +109,7 @@ function Inventory() {
   const fetchSearchData = async (searchItem) => {
     try {
       const data = await ProductService.search(
-        myLoginUser?.roleID?.name,
+        authContext?.user?.roleID?.name,
         searchItem,
         selectWarehouse || ""
       );
@@ -123,7 +125,7 @@ function Inventory() {
   const fetchProductByWarehouse = async (selectWarehouseVal) => {
     try {
       const data = await ProductService.getByWarehouse(
-        myLoginUser?.roleID?.name,
+        authContext?.user?.roleID?.name,
         searchTerm || "",
         selectWarehouseVal
       );
@@ -163,7 +165,7 @@ function Inventory() {
   const deleteItem = () => {
     fetch(
       `${process.env.REACT_APP_API_BASE_URL}product/delete/${selectedProduct?._id}`,
-      { method: "delete", headers: { role: myLoginUser?.roleID?.name } }
+      { method: "delete", headers: { role: authContext?.user?.roleID?.name } }
     )
       .then((response) => response.json())
       .then(() => {
@@ -206,7 +208,7 @@ function Inventory() {
 
   const fetchBrandData = async () => {
     try {
-      const data = await BrandService.getAll(myLoginUser?.roleID?.name);
+      const data = await BrandService.getAll(authContext?.user?.roleID?.name);
       setAllBrands(data);
     } catch (err) {
       toastMessage(
@@ -346,7 +348,7 @@ function Inventory() {
                 <th className="px-4 py-2 text-left font-medium text-gray-700">
                   Description
                 </th>
-                {myLoginUser?.roleID?.name ===
+                {authContext?.user?.roleID?.name ===
                   ROLES.HIDE_MASTER_SUPER_ADMIN && (
                   <th className="px-4 py-2 text-left font-medium text-gray-700">
                     Hide
@@ -386,7 +388,7 @@ function Inventory() {
                     </td>
 
                     {/* Hide Column */}
-                    {myLoginUser?.roleID?.name ===
+                    {authContext?.user?.roleID?.name ===
                       ROLES.HIDE_MASTER_SUPER_ADMIN && (
                       <td className="px-4 py-2 text-center text-gray-700">
                         {element?.isActive ? (
@@ -424,7 +426,7 @@ function Inventory() {
                         {[
                           ROLES.HIDE_MASTER_SUPER_ADMIN,
                           ROLES.SUPER_ADMIN,
-                        ].includes(myLoginUser?.roleID?.name) && (
+                        ].includes(authContext?.user?.roleID?.name) && (
                           <Tooltip title="Delete" arrow>
                             <span
                               className="text-red-600 cursor-pointer"
