@@ -541,24 +541,37 @@ export default function AddPurchaseDetails({
                       </div>
                     ))}
                   </div>
-                  {pdfOpen && (
-                    <div className="bg-gray-50 px-4 py-3 sm:px-6">
-                      <h2 className="text-lg font-semibold">
-                        Are you want to download invoice bill?
-                      </h2>
-                      <p>This is the existing dialog purchase items.</p>
 
-                      <button
-                        type="button"
-                        className="inline-flex w-full justify-center rounded-md bg-blue-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-500 sm:w-auto"
-                        onClick={pdfDownload}
-                      >
-                        Pdf Download
-                      </button>
+                  {pdfOpen && (
+                    <div className="px-4 py-6 sm:px-8 bg-white shadow rounded-xl border mt-4">
+                      <h2 className="text-xl font-bold text-gray-800 mb-2">
+                        Download Purchase Invoice
+                      </h2>
+                      <p className="text-sm text-gray-600 mb-4">
+                        Would you like to download the invoice bill for the
+                        current purchase?
+                      </p>
+
+                      <div className="flex justify-end gap-2">
+                        <button
+                          type="button"
+                          className="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 transition"
+                          onClick={() => setPdfOpen(false)}
+                        >
+                          Cancel
+                        </button>
+                        <button
+                          type="button"
+                          className="rounded-md bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-500 transition"
+                          onClick={pdfDownload}
+                        >
+                          Download PDF
+                        </button>
+                      </div>
                     </div>
                   )}
 
-                  <div className="bg-gray-50 px-4 py-3 sm:flex sm:flex-row-reverse sm:px-6">
+                  <div className="bg-gray-50 px-4 py-3 sm:flex sm:flex-row-reverse sm:px-6 rounded-xl mt-2">
                     <button
                       type="button"
                       className="inline-flex w-full justify-center rounded-md bg-blue-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-500 sm:ml-3 sm:w-auto"

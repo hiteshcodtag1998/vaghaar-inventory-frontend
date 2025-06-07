@@ -113,8 +113,8 @@ function Dashboard() {
           SalesService.getMonthlySalesData(),
         ]);
 
-        setSaleAmount(totalSalesResp.totalSaleAmount);
-        setPurchaseAmount(totalPurchaseResp.totalPurchaseAmount);
+        setSaleAmount(totalSalesResp.totalSaleAmount ?? 0);
+        setPurchaseAmount(totalPurchaseResp.totalPurchaseAmount ?? 0);
         setStores(warehousesResp);
         setProducts(productsResp);
         updateChartData(monthlySalesResp.salesAmount);

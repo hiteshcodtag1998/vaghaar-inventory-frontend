@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useContext } from "react";
-import axios from "axios";
 import AddSale from "../components/AddSale";
 import AuthContext from "../AuthContext";
 import { toastMessage } from "../utils/handler";
@@ -123,12 +122,12 @@ function Sales() {
 
       const response = await SalesService.downloadPDF(data);
 
-      const url = window.URL.createObjectURL(
-        new Blob([response.data], { type: "application/pdf" })
-      );
+      const blob = new Blob([response], { type: "application/pdf" });
+      const url = window.URL.createObjectURL(blob);
+
       const a = document.createElement("a");
       a.href = url;
-      a.download = "output.pdf";
+      a.download = "invoice.pdf";
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
