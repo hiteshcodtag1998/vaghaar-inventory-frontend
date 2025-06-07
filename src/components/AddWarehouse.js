@@ -1,6 +1,5 @@
 import { Fragment, useRef, useState, useContext } from "react";
 import { Dialog, Transition } from "@headlessui/react";
-import { PlusIcon } from "@heroicons/react/24/outline";
 import AuthContext from "../AuthContext";
 import { TOAST_TYPE } from "../utils/constant";
 import { toastMessage } from "../utils/handler";
@@ -86,17 +85,6 @@ export default function AddWarehouse({
                 {/* Header */}
                 <div className="mb-6 space-y-1">
                   <div className="flex items-center gap-3">
-                    <div className="relative group">
-                      <div className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-100">
-                        <PlusIcon
-                          className="h-5 w-5 text-blue-600"
-                          aria-hidden="true"
-                        />
-                      </div>
-                      <div className="absolute left-1/2 -translate-x-1/2 hidden group-hover:block px-2 py-1 text-xs text-white bg-gray-800 rounded shadow-md z-10">
-                        Create new warehouse
-                      </div>
-                    </div>
                     <h2 className="text-xl font-semibold text-gray-900">
                       Add Warehouse
                     </h2>

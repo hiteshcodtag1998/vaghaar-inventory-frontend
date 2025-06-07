@@ -1,4 +1,3 @@
-import axios from "axios";
 import React, { useState, useEffect, useContext } from "react";
 import AuthContext from "../AuthContext";
 import { TOAST_TYPE } from "../utils/constant";
@@ -7,6 +6,11 @@ import AddTransferStockDetails from "../components/AddTransferStock";
 import { FaDownload } from "react-icons/fa6";
 import { CircularProgress, Tooltip } from "@mui/material";
 import moment from "moment";
+import TransferStockService from "../services/TransferStockService";
+import ProductService from "../services/ProductService";
+import BrandService from "../services/BrandService";
+import WarehouseService from "../services/WarehouseService";
+import { MdAdd } from "react-icons/md";
 
 function TransferStockDetails() {
   const [showPurchaseModal, setPurchaseModal] = useState(false);
@@ -21,82 +25,78 @@ function TransferStockDetails() {
   const authContext = useContext(AuthContext);
 
   useEffect(() => {
-    fetchPurchaseData();
+    fetchTransferStockData();
     fetchProductsData();
     fetchBrandData();
     fetchWarehouseData();
   }, [updatePage]);
 
-  // Fetching Data of All Purchase items
-  const fetchPurchaseData = () => {
-    fetch(`${process.env.REACT_APP_API_BASE_URL}transferstock/get`, {
-      headers: { role: myLoginUser?.roleID?.name, requestBy: myLoginUser?._id },
-    })
-      .then((response) => response.json())
-      .then((data) => {
-        setAllPurchaseData(data);
-      })
-      .catch((err) =>
-        toastMessage(
-          err?.message || "Something goes wrong",
-          TOAST_TYPE.TYPE_ERROR
-        )
+  // Fetching Data of All Transfer items
+  const fetchTransferStockData = async () => {
+    try {
+      const data = await TransferStockService.getAll(
+        myLoginUser?.roleID?.name,
+        myLoginUser?._id
       );
+      setAllPurchaseData(data);
+    } catch (err) {
+      toastMessage(
+        err?.message || "Something goes wrong",
+        TOAST_TYPE.TYPE_ERROR
+      );
+    }
   };
 
   // Fetching Data of All Warehouse items
-  const fetchWarehouseData = () => {
-    fetch(`${process.env.REACT_APP_API_BASE_URL}warehouse/get`, {
-      headers: { role: myLoginUser?.roleID?.name },
-    })
-      .then((response) => response.json())
-      .then((data) => {
-        setAllWarehouses(data);
-      })
-      .catch((err) =>
-        toastMessage(
-          err?.message || "Something goes wrong",
-          TOAST_TYPE.TYPE_ERROR
-        )
+  const fetchWarehouseData = async () => {
+    try {
+      const data = await WarehouseService.getAll(
+        myLoginUser?.roleID?.name,
+        myLoginUser?._id
       );
+      setAllWarehouses(data);
+    } catch (err) {
+      toastMessage(
+        err?.message || "Something goes wrong",
+        TOAST_TYPE.TYPE_ERROR
+      );
+    }
   };
 
-  // Fetching Data of All Brrand items
-  const fetchBrandData = () => {
-    fetch(`${process.env.REACT_APP_API_BASE_URL}brand/get`, {
-      headers: { role: myLoginUser?.roleID?.name },
-    })
-      .then((response) => response.json())
-      .then((data) => {
-        setAllBrands(data);
-      })
-      .catch((err) =>
-        toastMessage(
-          err?.message || "Something goes wrong",
-          TOAST_TYPE.TYPE_ERROR
-        )
+  // Fetching Data of All Brand items
+  const fetchBrandData = async () => {
+    try {
+      const data = await BrandService.getAll(
+        myLoginUser?.roleID?.name,
+        myLoginUser?._id
       );
+      setAllBrands(data);
+    } catch (err) {
+      toastMessage(
+        err?.message || "Something goes wrong",
+        TOAST_TYPE.TYPE_ERROR
+      );
+    }
   };
 
   // Fetching Data of All Products
-  const fetchProductsData = () => {
-    fetch(`${process.env.REACT_APP_API_BASE_URL}product/get`, {
-      headers: { role: myLoginUser?.roleID?.name },
-    })
-      .then((response) => response.json())
-      .then((data) => {
-        setAllProducts(data);
-      })
-      .catch((err) =>
-        toastMessage(
-          err?.message || "Something goes wrong",
-          TOAST_TYPE.TYPE_ERROR
-        )
+  const fetchProductsData = async () => {
+    try {
+      const data = await ProductService.getAll(
+        myLoginUser?.roleID?.name,
+        myLoginUser?._id
       );
+      setAllProducts(data);
+    } catch (err) {
+      toastMessage(
+        err?.message || "Something goes wrong",
+        TOAST_TYPE.TYPE_ERROR
+      );
+    }
   };
 
   // Modal for Sale Add
-  const addSaleModalSetting = () => {
+  const addTransferStockModalSetting = () => {
     setPurchaseModal(!showPurchaseModal);
   };
 
@@ -107,47 +107,42 @@ function TransferStockDetails() {
 
   const handleDownload = async (data, index) => {
     try {
-      // Set the loader to true for the specific index
-      setPdfBtnLoaderIndexes((prevIndexes) => {
-        const newIndexes = [...prevIndexes];
-        newIndexes[index] = true;
-        return newIndexes;
+      // Enable loader
+      setPdfBtnLoaderIndexes((prev) => {
+        const updated = [...prev];
+        updated[index] = true;
+        return updated;
       });
 
-      const response = await axios.post(
-        `${process.env.REACT_APP_API_BASE_URL}transferstock/transfterstock-pdf-download`,
-        data,
-        {
-          responseType: "arraybuffer",
-        }
-      );
-      console.log("response", response);
-      // Assuming the server returns the PDF content as a blob
-      // setPdfData(new Blob([response.data], { type: 'application/pdf' }));
+      // Call download API
+      const response = await TransferStockService.downloadPDF(data);
 
-      const url = window.URL.createObjectURL(
-        new Blob([response.data], { type: "application/pdf" })
-      );
+      // Convert to blob and trigger download
+      const blob = new Blob([response], { type: "application/pdf" });
+      const url = window.URL.createObjectURL(blob);
+
       const a = document.createElement("a");
       a.href = url;
-      a.download = "output.pdf";
+      a.download = "transfer-invoice.pdf";
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
+
       window.open(url, "_blank");
-      setPdfBtnLoaderIndexes((prevIndexes) => {
-        const newIndexes = [...prevIndexes];
-        newIndexes[index] = false;
-        return newIndexes;
+
+      // Disable loader
+      setPdfBtnLoaderIndexes((prev) => {
+        const updated = [...prev];
+        updated[index] = false;
+        return updated;
       });
-      // window.URL.revokeObjectURL(url);
     } catch (error) {
-      setPdfBtnLoaderIndexes((prevIndexes) => {
-        const newIndexes = [...prevIndexes];
-        newIndexes[index] = false;
-        return newIndexes;
+      setPdfBtnLoaderIndexes((prev) => {
+        const updated = [...prev];
+        updated[index] = false;
+        return updated;
       });
-      console.log("Error", error);
+      console.error("Transfer download error:", error);
     }
   };
 
@@ -156,7 +151,7 @@ function TransferStockDetails() {
       <div className=" flex flex-col gap-5 w-11/12">
         {showPurchaseModal && (
           <AddTransferStockDetails
-            addSaleModalSetting={addSaleModalSetting}
+            addTransferStockModalSetting={addTransferStockModalSetting}
             products={products}
             brands={brands}
             handlePageUpdate={handlePageUpdate}
@@ -164,110 +159,103 @@ function TransferStockDetails() {
             warehouses={warehouses}
           />
         )}
+
         {/* Table  */}
         <div className="overflow-x-auto rounded-lg border bg-white border-gray-200 ">
-          <div className="flex justify-between pt-5 pb-3 px-3">
-            <div className="flex gap-4 justify-center items-center ">
-              <span className="font-bold">TransferStock Details</span>
-            </div>
-            <div className="flex gap-4">
-              <button
-                className="bg-blue-500 hover:bg-blue-700 text-white font-bold p-2 text-xs  rounded"
-                onClick={addSaleModalSetting}
-              >
-                {/* <Link to="/inventory/add-product">Add Product</Link> */}
-                Add TransferStock
-              </button>
-            </div>
+          <div className="flex items-center justify-between px-4 py-4 border-b bg-white rounded-t-md">
+            <h2 className="text-lg font-semibold text-gray-800">
+              TransferStock Details
+            </h2>
+            <button
+              onClick={addTransferStockModalSetting}
+              className="inline-flex items-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 transition-all"
+            >
+              <MdAdd className="w-5 h-5" />
+              Add TransferStock
+            </button>
           </div>
-          <table className="min-w-full divide-y-2 divide-gray-200 text-sm">
-            <thead>
+
+          <table className="min-w-full divide-y divide-gray-200 text-sm">
+            <thead className="bg-gray-50">
               <tr>
-                <th className="whitespace-nowrap px-4 py-2 text-left font-medium text-gray-900">
+                <th className="px-4 py-2 text-left font-medium text-gray-700">
                   Product Name
                 </th>
-                <th className="whitespace-nowrap px-4 py-2 text-left font-medium text-gray-900">
+                <th className="px-4 py-2 text-left font-medium text-gray-700">
                   Brand Name
                 </th>
-                <th className="whitespace-nowrap px-4 py-2 text-left font-medium text-gray-900">
+                <th className="px-4 py-2 text-left font-medium text-gray-700">
                   Quantity Transfer
                 </th>
-                <th className="whitespace-nowrap px-4 py-2 text-left font-medium text-gray-900">
+                <th className="px-4 py-2 text-left font-medium text-gray-700">
                   Sending Location
                 </th>
-                <th className="whitespace-nowrap px-4 py-2 text-left font-medium text-gray-900">
+                <th className="px-4 py-2 text-left font-medium text-gray-700">
                   Receiving Location
                 </th>
-                <th className="whitespace-nowrap px-4 py-2 text-left font-medium text-gray-900">
+                <th className="px-4 py-2 text-left font-medium text-gray-700">
                   Transfer Date
                 </th>
-                <th className="whitespace-nowrap text-left font-medium text-gray-900">
-                  Action
+                <th className="px-4 py-2 text-left font-medium text-gray-700">
+                  Actions
                 </th>
-                {/* <th className="whitespace-nowrap px-4 py-2 text-left font-medium text-gray-900">
-                  Total Purchase Amount
-                </th> */}
               </tr>
             </thead>
 
-            <tbody className="divide-y divide-gray-200">
-              {purchase?.length === 0 && (
-                <div className="bg-white w-50 h-fit flex flex-col gap-4 p-4 ">
-                  <div className="flex flex-col gap-3 justify-between items-start">
-                    <span>No data found</span>
-                  </div>
-                </div>
-              )}
-              {purchase.map((element, index) => {
-                return (
-                  <tr key={element._id}>
-                    <td className="whitespace-nowrap px-4 py-2  text-gray-900">
+            <tbody className="divide-y divide-gray-100">
+              {purchase?.length === 0 ? (
+                <tr>
+                  <td
+                    colSpan={7}
+                    className="px-4 py-4 text-center text-gray-500"
+                  >
+                    No data found
+                  </td>
+                </tr>
+              ) : (
+                purchase.map((element, index) => (
+                  <tr key={element._id} className="hover:bg-gray-50">
+                    <td className="px-4 py-2 text-gray-900">
                       {element.productID?.name || ""}
                     </td>
-                    <td className="whitespace-nowrap px-4 py-2  text-gray-900">
+                    <td className="px-4 py-2 text-gray-700">
                       {element?.brandID?.name || ""}
                     </td>
-                    <td className="whitespace-nowrap px-4 py-2 text-gray-700">
+                    <td className="px-4 py-2 text-gray-700">
                       {element.quantity}
                     </td>
-                    <td className="whitespace-nowrap px-4 py-2  text-gray-900">
+                    <td className="px-4 py-2 text-gray-700">
                       {element?.fromWarehouseID?.name || ""}
                     </td>
-                    <td className="whitespace-nowrap px-4 py-2  text-gray-900">
+                    <td className="px-4 py-2 text-gray-700">
                       {element?.toWarehouseID?.name || ""}
                     </td>
-                    <td className="whitespace-nowrap px-4 py-2 text-gray-700">
-                      {new Date(element.transferDate).toLocaleDateString() ==
+                    <td className="px-4 py-2 text-gray-700">
+                      {new Date(element.transferDate).toLocaleDateString() ===
                       new Date().toLocaleDateString()
                         ? "Today"
-                        : moment(element.transferDate, "YYYY-MM-DD").format(
-                            "DD-MM-YYYY"
-                          )}
+                        : moment(element.transferDate).format("DD-MM-YYYY")}
                     </td>
-                    <td>
-                      <div className="flex">
-                        <Tooltip title="Download Sale Note" arrow>
-                          <span className="text-green-700 px-2 flex">
+                    <td className="px-4 py-2 text-gray-700">
+                      <div className="flex gap-2 items-center">
+                        <Tooltip title="Download Transfer Note" arrow>
+                          <span className="text-green-600 cursor-pointer">
                             {pdfBtnLoaderIndexes[index] ? (
                               <CircularProgress size={20} />
                             ) : (
                               <FaDownload
-                                className={`cursor-pointer ${
-                                  pdfBtnLoaderIndexes[index] && "block"
-                                }`}
                                 onClick={() => handleDownload(element, index)}
                               />
                             )}
                           </span>
                         </Tooltip>
+
+                        {/* Optional: Add Edit or Delete icons like in Sales if needed */}
                       </div>
                     </td>
-                    {/* <td className="whitespace-nowrap px-4 py-2 text-gray-700">
-                      ${element.TotalPurchaseAmount}
-                    </td> */}
                   </tr>
-                );
-              })}
+                ))
+              )}
             </tbody>
           </table>
         </div>

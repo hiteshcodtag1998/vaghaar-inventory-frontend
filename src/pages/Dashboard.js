@@ -1,6 +1,5 @@
 import React, { useContext, useEffect, useState } from "react";
 import Chart from "react-apexcharts";
-import AuthContext from "../AuthContext";
 import { Doughnut } from "react-chartjs-2";
 import { Chart as ChartJS, ArcElement, Tooltip, Legend } from "chart.js";
 import { toastMessage } from "../utils/handler";
@@ -10,6 +9,7 @@ import SalesService from "../services/SalesService";
 import PurchaseService from "../services/PurchaseService";
 import WarehouseService from "../services/WarehouseService";
 import ProductService from "../services/ProductService";
+import AuthContext from "../AuthContext";
 
 ChartJS.register(ArcElement, Tooltip, Legend);
 
@@ -52,6 +52,8 @@ function StatCard({ title, value, colorClass = "text-gray-900" }) {
 }
 
 function Dashboard() {
+  const authContext = useContext(AuthContext);
+
   const [saleAmount, setSaleAmount] = useState("");
   const [purchaseAmount, setPurchaseAmount] = useState("");
   const [stores, setStores] = useState([]);
@@ -84,8 +86,6 @@ function Dashboard() {
     ],
   });
 
-  const myLoginUser = JSON.parse(localStorage.getItem("user"));
-
   // Update Chart Data helper
   const updateChartData = (salesData) => {
     setChart((prev) => ({
@@ -97,7 +97,7 @@ function Dashboard() {
   useEffect(() => {
     async function fetchDashboardData() {
       try {
-        const role = myLoginUser?.roleID?.name;
+        const role = authContext?.user?.roleID?.name;
 
         const [
           totalSalesResp,
@@ -127,7 +127,7 @@ function Dashboard() {
     }
 
     fetchDashboardData();
-  }, [myLoginUser]);
+  }, [authContext?.user]);
 
   return (
     <div className="grid grid-cols-1 gap-6 p-4 md:grid-cols-3 lg:grid-cols-4 lg:col-span-10">
