@@ -1,15 +1,15 @@
-import { Fragment, useRef, useState } from "react";
+import { Fragment, useContext, useRef, useState } from "react";
 import { Dialog, Transition } from "@headlessui/react";
 import { ROLES, TOAST_TYPE } from "../utils/constant";
 import { toastMessage } from "../utils/handler";
 import DatePicker from "react-datepicker";
 import moment from "moment";
 import SalesService from "../services/SalesService";
+import AuthContext from "../AuthContext";
 
 export default function UpdateSale({
   brands,
   products,
-  authContext,
   updateSaleData,
   updateModalSetting,
   fetchSalesData,
@@ -26,7 +26,8 @@ export default function UpdateSale({
     StockSold,
     warehouseID,
   } = updateSaleData;
-  const myLoginUser = JSON.parse(localStorage.getItem("user"));
+  const authContext = useContext(AuthContext);
+
   const [sale, setSale] = useState({
     saleID: _id,
     userID: authContext.user?._id,
@@ -66,8 +67,8 @@ export default function UpdateSale({
     try {
       await SalesService.update(
         sale,
-        myLoginUser?.roleID?.name,
-        myLoginUser?._id
+        authContext?.user?.roleID?.name,
+        authContext?.user?._id
       );
 
       toastMessage("Sale UPDATED", TOAST_TYPE.TYPE_SUCCESS);
@@ -192,7 +193,7 @@ export default function UpdateSale({
                           ![
                             ROLES.HIDE_MASTER_SUPER_ADMIN,
                             ROLES.SUPER_ADMIN,
-                          ].includes(myLoginUser?.roleID?.name)
+                          ].includes(authContext?.user?.roleID?.name)
                         }
                         onChange={(e) =>
                           handleInputChange(e.target.name, e.target.value)
@@ -269,7 +270,7 @@ export default function UpdateSale({
                             ![
                               ROLES.HIDE_MASTER_SUPER_ADMIN,
                               ROLES.SUPER_ADMIN,
-                            ].includes(myLoginUser?.roleID?.name)
+                            ].includes(authContext?.user?.roleID?.name)
                           }
                           timeIntervals={1}
                           className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5"
@@ -301,7 +302,8 @@ export default function UpdateSale({
                     <div className="flex items-center space-x-4"></div>
                   </div>
                 </div>
-                <div className="bg-gray-50 mt-4 px-4 py-3 sm:flex sm:flex-row-reverse sm:px-6">
+
+                <div className="bg-gray-50 px-4 py-3 sm:flex sm:flex-row-reverse sm:px-6 rounded-xl mt-2">
                   <button
                     type="button"
                     className="inline-flex w-full justify-center rounded-md bg-blue-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-500 sm:ml-3 sm:w-auto"

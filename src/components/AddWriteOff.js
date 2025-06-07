@@ -1,4 +1,4 @@
-import { Fragment, useRef, useState } from "react";
+import { Fragment, useContext, useRef, useState } from "react";
 import { Dialog, Transition } from "@headlessui/react";
 import { PlusIcon } from "@heroicons/react/24/outline";
 import { ROLES, TOAST_TYPE } from "../utils/constant";
@@ -9,15 +9,20 @@ import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import moment from "moment";
 import axios from "axios";
+import AuthContext from "../AuthContext";
+import WriteOffService from "../services/WriteOffService";
+import LoaderButton from "./LoaderButton";
+import { FiTrash } from "react-icons/fi";
 
 export default function AddWriteOffDetails({
-  addSaleModalSetting,
+  addWriteOffModalSetting,
   products,
   handlePageUpdate,
-  authContext,
   brands,
   warehouses,
 }) {
+  const authContext = useContext(AuthContext);
+
   const [writeOff, setPurchase] = useState([
     {
       userID: authContext.user?._id,
@@ -29,7 +34,7 @@ export default function AddWriteOffDetails({
       warehouseID: "",
     },
   ]);
-  const myLoginUser = JSON.parse(localStorage.getItem("user"));
+  const [pdfBtnLoader, setPdfBtnLoader] = useState(false);
   const [open, setOpen] = useState(true);
   const cancelButtonRef = useRef(null);
   const [showBrandModal, setBrandModal] = useState(false);
@@ -83,76 +88,85 @@ export default function AddWriteOffDetails({
 
   // PDF Download
   const pdfDownload = async () => {
-    const writeoffPayload = formatWriteOffData();
+    setPdfBtnLoader(true);
 
     if (writeOff?.length === 0) {
       toastMessage("Please add writeoff", TOAST_TYPE.TYPE_ERROR);
+      setPdfBtnLoader(false);
       return;
     }
 
-    // Check if any product field is null or empty
+    const writeoffPayload = formatWriteOffData();
+
     const hasEmptyField = writeoffPayload.some(
       (p) => !p?.productID || !p?.stockSold || !p?.saleDate
     );
-
-    const hasFieldLessthanZero = writeoffPayload.some((p) => p?.stockSold < 1);
+    const hasFieldLessThanZero = writeoffPayload.some((p) => p?.stockSold < 1);
 
     if (hasEmptyField) {
       toastMessage(
         "Please fill in all fields for each writeoff",
         TOAST_TYPE.TYPE_ERROR
       );
+      setPdfBtnLoader(false);
       return;
     }
 
-    if (hasFieldLessthanZero) {
+    if (hasFieldLessThanZero) {
       toastMessage(
-        "Writeoff quantity should be grater than zero",
+        "Writeoff quantity should be greater than zero",
         TOAST_TYPE.TYPE_ERROR
       );
+      setPdfBtnLoader(false);
       return;
     }
 
-    const response = await axios.post(
-      `${process.env.REACT_APP_API_BASE_URL}writeoff/writeOff-multipleitems-pdf-download`,
-      writeoffPayload,
-      {
-        headers: {
-          role: myLoginUser?.roleID?.name,
-          requestBy: myLoginUser?._id,
-        },
-        responseType: "arraybuffer",
-        "Content-Type": "application/json",
-      }
-    );
-    // Assuming the server returns the PDF content as a blob
-    // setPdfData(new Blob([response.data], { type: 'application/pdf' }));
+    try {
+      const response = await WriteOffService.downloadMultipleItemsPDF(
+        writeoffPayload,
+        authContext?.user?.roleID?.name,
+        authContext?.user?._id
+      );
 
-    const url = window.URL.createObjectURL(
-      new Blob([response.data], { type: "application/pdf" })
-    );
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "output.pdf";
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    window.open(url, "_blank");
+      const blob = new Blob([response], { type: "application/pdf" });
+      const url = window.URL.createObjectURL(blob);
+
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "writeoff.pdf";
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      window.open(url, "_blank");
+
+      toastMessage(
+        "WriteOff PDF generated successfully",
+        TOAST_TYPE.TYPE_SUCCESS
+      );
+    } catch (err) {
+      toastMessage(
+        err?.message || "Something went wrong",
+        TOAST_TYPE.TYPE_ERROR
+      );
+    } finally {
+      setPdfBtnLoader(false);
+    }
   };
 
   // POST Data
-  const addSale = () => {
+  const addWriteOff = async () => {
+    const writeOffPayload = formatWriteOffData();
+
     if (writeOff?.length === 0) {
       toastMessage("Please add sale", TOAST_TYPE.TYPE_ERROR);
       return;
     }
 
-    const writeOffPayload = formatWriteOffData();
-
-    // Check if any product field is null or empty
     const hasEmptyField = writeOffPayload.some(
       (p) => !p?.productID || !p?.stockSold || !p?.saleDate
     );
+
+    const hasFieldLessThanZero = writeOffPayload.some((p) => p?.stockSold < 1);
 
     if (hasEmptyField) {
       toastMessage(
@@ -162,46 +176,30 @@ export default function AddWriteOffDetails({
       return;
     }
 
-    const hasFieldLessthanZero = writeOff.some((p) => p?.stockSold < 1);
-
-    if (hasFieldLessthanZero) {
+    if (hasFieldLessThanZero) {
       toastMessage(
-        "Purchase quantity should be grater than zero",
+        "Writeoff quantity should be greater than zero",
         TOAST_TYPE.TYPE_ERROR
       );
       return;
     }
 
-    // const payload = [{ ...writeOffPayload, saleDate: moment(new Date(writeOffPayload.saleDate)).format('YYYY-MM-DD') }]
-
-    fetch(`${process.env.REACT_APP_API_BASE_URL}writeoff/add`, {
-      method: "POST",
-      headers: {
-        role: myLoginUser?.roleID?.name,
-        requestBy: myLoginUser?._id,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(writeOffPayload),
-    })
-      .then(async (res) => {
-        if (!res.ok) {
-          const errorData = await res.json(); // Assuming the error response is in JSON format
-          throw new Error(
-            errorData.message || "Something went wrong on the server"
-          );
-        }
-
-        toastMessage("WriteOff ADDED", TOAST_TYPE.TYPE_SUCCESS);
-        handlePageUpdate();
-        addSaleModalSetting();
-        // setPdfOpen(true)
-      })
-      .catch((err) =>
-        toastMessage(
-          err?.message || "Something goes wrong",
-          TOAST_TYPE.TYPE_ERROR
-        )
+    try {
+      await WriteOffService.add(
+        writeOffPayload,
+        authContext?.user?.roleID?.name,
+        authContext?.user?._id
       );
+      toastMessage("WriteOff ADDED", TOAST_TYPE.TYPE_SUCCESS);
+      handlePageUpdate();
+      addWriteOffModalSetting(); // close modal
+      // setPdfOpen(true); // if you want to show PDF option after add
+    } catch (err) {
+      toastMessage(
+        err?.message || "Something went wrong",
+        TOAST_TYPE.TYPE_ERROR
+      );
+    }
   };
 
   const handleOpenBrand = () => {
@@ -227,11 +225,10 @@ export default function AddWriteOffDetails({
   };
 
   return (
-    // Modal
     <Transition.Root show={open} as={Fragment}>
       <Dialog
         as="div"
-        className="relative z-10"
+        className="relative z-50"
         initialFocus={cancelButtonRef}
         onClose={setOpen}
       >
@@ -247,328 +244,279 @@ export default function AddWriteOffDetails({
           <div className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" />
         </Transition.Child>
 
-        <div className="fixed inset-0 z-10 overflow-y-auto">
-          <div className="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0 ">
+        <div className="fixed inset-0 z-50 overflow-y-auto">
+          <div className="flex min-h-full items-center justify-center p-4 sm:p-6 lg:p-8">
             <Transition.Child
               as={Fragment}
               enter="ease-out duration-300"
-              enterFrom="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
-              enterTo="opacity-100 translate-y-0 sm:scale-100"
+              enterFrom="opacity-0 scale-95"
+              enterTo="opacity-100 scale-100"
               leave="ease-in duration-200"
-              leaveFrom="opacity-100 translate-y-0 sm:scale-100"
-              leaveTo="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+              leaveFrom="opacity-100 scale-100"
+              leaveTo="opacity-0 scale-95"
             >
-              <Dialog.Panel className="relative transform overflow-hidden rounded-lg bg-white text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg overflow-y-scroll">
-                <div className="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
-                  <div className="sm:flex sm:items-start">
-                    {/* <div className="mx-auto flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-blue-100 sm:mx-0 sm:h-10 sm:w-10">
-                                            <PlusIcon
-                                                className="h-6 w-6 text-blue-400"
-                                                aria-hidden="true"
-                                                onClick={handleAddForm}
-                                            />
-                                        </div> */}
-                    <div className="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left ">
-                      <Dialog.Title
-                        as="h3"
-                        className="text-lg  py-4 font-semibold leading-6 text-gray-900 "
+              <Dialog.Panel className="w-full max-w-3xl transform overflow-hidden rounded-2xl bg-white p-6 shadow-xl transition-all">
+                {/* Modal Header */}
+                <div className="mb-6 space-y-1">
+                  <div className="flex items-center gap-3">
+                    {/* Icon with Tooltip */}
+                    <div className="relative group">
+                      <div
+                        className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-100 cursor-pointer"
+                        aria-label="Create new product"
+                        onClick={handleAddForm}
                       >
-                        Add WriteOff
-                      </Dialog.Title>
-                      {writeOff.map((p, index) => (
-                        <form action="#">
-                          {/* <div className="flex justify-between items-center mt-5">
-                                                        <span>WriteOff: {index + 1}</span>
-                                                        <div className="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
-                                                            <button
-                                                                type="button"
-                                                                className="text-red-600 inline-flex items-center hover:text-white border border-red-600 hover:bg-red-600 focus:ring-4 focus:outline-none focus:ring-red-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:border-red-500 dark:text-red-500 dark:hover:text-white dark:hover:bg-red-600 dark:focus:ring-red-900"
-                                                                onClick={() => removeForm(index)}
-                                                            >
-                                                                <svg
-                                                                    className="mr-1 -ml-1 w-5 h-5"
-                                                                    fill="currentColor"
-                                                                    viewBox="0 0 20 20"
-                                                                    xmlns="http://www.w3.org/2000/svg"
-                                                                >
-                                                                    <path
-                                                                        fillRule="evenodd"
-                                                                        d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z"
-                                                                        clipRule="evenodd"
-                                                                    ></path>
-                                                                </svg>
-                                                                Delete
-                                                            </button>
-                                                        </div>
-                                                    </div> */}
-                          <div className="grid gap-4 mb-4 sm:grid-cols-2">
-                            <div>
-                              <label
-                                htmlFor="productID"
-                                className="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
-                              >
-                                Product Name
-                              </label>
-                              <select
-                                id="productID"
-                                className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
-                                name="productID"
-                                onChange={(e) =>
-                                  handleInputChange(
-                                    index,
-                                    e.target.name,
-                                    e.target.value
-                                  )
-                                }
-                              >
-                                <option selected="">Select Products</option>
-                                {products.map((element, index) => (
-                                  <option key={element._id} value={element._id}>
-                                    {element.name}
-                                  </option>
-                                ))}
-                              </select>
-                            </div>
-                            <div>
-                              <label
-                                htmlFor="brandID"
-                                className="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
-                              >
-                                Brand Name
-                              </label>
-                              <select
-                                id="brandID"
-                                className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
-                                name="brandID"
-                                disabled={true}
-                                value={writeOff[index]?.brandID || ""}
-                                onChange={(e) =>
-                                  handleInputChange(
-                                    index,
-                                    e.target.name,
-                                    e.target.value
-                                  )
-                                }
-                              >
-                                <option selected="">Select Brand</option>
-                                {brands.map((element, index) => (
-                                  <option key={element._id} value={element._id}>
-                                    {element.name}
-                                  </option>
-                                ))}
-                              </select>
-                            </div>
-                            <div>
-                              <label
-                                htmlFor="stockSold"
-                                className="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
-                              >
-                                Stock WriteOff
-                              </label>
-                              <input
-                                type="number"
-                                name="stockSold"
-                                id="stockSold"
-                                value={writeOff[index]?.stockSold || ""}
-                                onChange={(e) =>
-                                  handleInputChange(
-                                    index,
-                                    e.target.name,
-                                    e.target.value
-                                  )
-                                }
-                                className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
-                                placeholder="0 - 999"
-                              />
-                            </div>
-                            {/* <div>
-                                                            <label
-                                                                htmlFor="supplierName"
-                                                                className="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
-                                                            >
-                                                                Supplier Name
-                                                            </label>
-                                                            <input
-                                                                type="text"
-                                                                name="supplierName"
-                                                                id="supplierName"
-                                                                value={writeOff.supplierName}
-                                                                onChange={(e) =>
-                                                                    handleInputChange(index, e.target.name, e.target.value)
-                                                                }
-                                                                className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
-                                                                placeholder="Enter Supplier Name"
-                                                            />
-                                                        </div> */}
+                        <PlusIcon
+                          className="h-5 w-5 text-blue-600"
+                          aria-hidden="true"
+                        />
+                      </div>
 
-                            <div>
-                              <label
-                                htmlFor="warehouseID"
-                                className="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
-                              >
-                                Warehouse Name
-                              </label>
-                              <select
-                                id="warehouseID"
-                                className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
-                                name="warehouseID"
-                                onChange={(e) =>
-                                  handleInputChange(
-                                    index,
-                                    e.target.name,
-                                    e.target.value
-                                  )
-                                }
-                              >
-                                <option selected="">Select Warehouse</option>
-                                {warehouses.map((element, index) => {
-                                  return (
-                                    <option
-                                      key={element._id}
-                                      value={element._id}
-                                    >
-                                      {element.name}
-                                    </option>
-                                  );
-                                })}
-                              </select>
-                            </div>
-                            {/* <div>
-                                                            <label
-                                                                htmlFor="storeName"
-                                                                className="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
-                                                            >
-                                                                Warehouse Name
-                                                            </label>
-                                                            <input
-                                                                type="text"
-                                                                name="storeName"
-                                                                id="storeName"
-                                                                value={writeOff.storeName}
-                                                                onChange={(e) =>
-                                                                    handleInputChange(index, e.target.name, e.target.value)
-                                                                }
-                                                                className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
-                                                                placeholder="Enter Warehouse Name"
-                                                            />
-                                                        </div> */}
-
-                            <div className="h-fit w-full">
-                              {/* <Datepicker
-                              onChange={handleChange}
-                              show={show}
-                              setShow={handleClose}
-                            /> */}
-                              <label
-                                className="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
-                                htmlFor="salesDate"
-                              >
-                                WriteOff Date
-                              </label>
-                              <DatePicker
-                                dateFormat="dd-MM-yyyy HH:mm"
-                                selected={
-                                  writeOff[index]?.saleDate
-                                    ? new Date(writeOff[index]?.saleDate)
-                                    : new Date()
-                                }
-                                placeholderText="dd-mm-yyyy"
-                                maxDate={new Date()}
-                                showTimeSelect
-                                timeIntervals={1}
-                                disabled={
-                                  ![
-                                    ROLES.HIDE_MASTER_SUPER_ADMIN,
-                                    ROLES.SUPER_ADMIN,
-                                  ].includes(myLoginUser?.roleID?.name)
-                                }
-                                className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
-                                onChange={(date) => {
-                                  handleInputChange(index, "saleDate", date);
-                                }}
-                              />
-                              {/* <input
-                                                                className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
-                                                                type="date"
-                                                                id="saleDate"
-                                                                name="saleDate"
-                                                                value={writeOff[index]?.saleDate || ''}
-                                                                onChange={(e) =>
-                                                                    handleInputChange(index, e.target.name, e.target.value)
-                                                                }
-                                                            /> */}
-                            </div>
-                          </div>
-                          <div>
-                            <label
-                              htmlFor="reason"
-                              className="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
-                            >
-                              Reason
-                            </label>
-                            <input
-                              type="text"
-                              name="reason"
-                              id="reason"
-                              value={writeOff[index]?.reason || ""}
-                              onChange={(e) =>
-                                handleInputChange(
-                                  index,
-                                  e.target.name,
-                                  e.target.value
-                                )
-                              }
-                              className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
-                              placeholder="Enter a Reason"
-                            />
-                          </div>
-                          {/* <div className="flex items-center space-x-4">
-
-                                                    <Button className="pt-10" onClick={handleOpenBrand} variant="contained" color="secondary">
-                                                        Add Brand
-                                                    </Button>
-                                                </div> */}
-                        </form>
-                      ))}
+                      {/* Tooltip on hover */}
+                      <div className="absolute left-1/2 -translate-x-1/2 hidden group-hover:block px-2 py-1 text-xs text-white bg-gray-800 rounded shadow-md z-10">
+                        Add new writeoff
+                      </div>
                     </div>
+
+                    {/* Title */}
+                    <h2 className="text-xl font-semibold text-gray-900">
+                      Add Writeoff
+                    </h2>
                   </div>
                 </div>
-                {pdfOpen && (
-                  <div className="bg-gray-50 px-4 py-3 sm:px-6">
-                    <h2 className="text-lg font-semibold">
-                      Are you want to download invoice bill?
-                    </h2>
-                    <p>This is the existing dialog writeOff items.</p>
 
-                    <button
-                      type="button"
-                      className="inline-flex w-full justify-center rounded-md bg-blue-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-500 sm:w-auto"
-                      onClick={pdfDownload}
+                {/* Dynamic Product Forms */}
+                <div className="space-y-10">
+                  {writeOff.map((p, index) => (
+                    <div
+                      key={index}
+                      className="border-t border-gray-200 pt-6 space-y-4"
                     >
-                      Pdf Download
-                    </button>
+                      <div className="flex justify-between items-center">
+                        <h3 className="text-sm font-semibold text-gray-700">
+                          WriteOff #{index + 1}
+                        </h3>
+                        <button
+                          onClick={() => removeForm(index)}
+                          className="text-red-600 hover:text-red-800 text-sm p-1 rounded transition"
+                          aria-label="Remove"
+                          title="Remove sale"
+                        >
+                          <FiTrash className="w-5 h-5" />
+                        </button>
+                      </div>
+
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <label
+                            htmlFor="productID"
+                            className="block text-sm font-medium text-gray-700 text-left"
+                          >
+                            Product Name
+                          </label>
+                          <select
+                            id="productID"
+                            className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5"
+                            name="productID"
+                            onChange={(e) =>
+                              handleInputChange(
+                                index,
+                                e.target.name,
+                                e.target.value
+                              )
+                            }
+                          >
+                            <option selected="">Select Products</option>
+                            {products.map((element, index) => (
+                              <option key={element._id} value={element._id}>
+                                {element.name}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                        <div>
+                          <label
+                            htmlFor="brandID"
+                            className="block text-sm font-medium text-gray-700 text-left"
+                          >
+                            Brand Name
+                          </label>
+                          <select
+                            id="brandID"
+                            className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5"
+                            name="brandID"
+                            disabled={true}
+                            value={writeOff[index]?.brandID || ""}
+                            onChange={(e) =>
+                              handleInputChange(
+                                index,
+                                e.target.name,
+                                e.target.value
+                              )
+                            }
+                          >
+                            <option selected="">Select Brand</option>
+                            {brands.map((element, index) => (
+                              <option key={element._id} value={element._id}>
+                                {element.name}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                        <div>
+                          <label
+                            htmlFor="stockSold"
+                            className="block text-sm font-medium text-gray-700 text-left"
+                          >
+                            Stock WriteOff
+                          </label>
+                          <input
+                            type="number"
+                            name="stockSold"
+                            id="stockSold"
+                            value={writeOff[index]?.stockSold || ""}
+                            onChange={(e) =>
+                              handleInputChange(
+                                index,
+                                e.target.name,
+                                e.target.value
+                              )
+                            }
+                            className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5"
+                            placeholder="0 - 999"
+                          />
+                        </div>
+
+                        <div>
+                          <label
+                            htmlFor="warehouseID"
+                            className="block text-sm font-medium text-gray-700 text-left"
+                          >
+                            Warehouse Name
+                          </label>
+                          <select
+                            id="warehouseID"
+                            className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5"
+                            name="warehouseID"
+                            onChange={(e) =>
+                              handleInputChange(
+                                index,
+                                e.target.name,
+                                e.target.value
+                              )
+                            }
+                          >
+                            <option selected="">Select Warehouse</option>
+                            {warehouses.map((element, index) => {
+                              return (
+                                <option key={element._id} value={element._id}>
+                                  {element.name}
+                                </option>
+                              );
+                            })}
+                          </select>
+                        </div>
+
+                        <div className="h-fit w-full">
+                          <label
+                            className="block text-sm font-medium text-gray-700 text-left"
+                            htmlFor="salesDate"
+                          >
+                            WriteOff Date
+                          </label>
+                          <DatePicker
+                            dateFormat="dd-MM-yyyy HH:mm"
+                            selected={
+                              writeOff[index]?.saleDate
+                                ? new Date(writeOff[index]?.saleDate)
+                                : new Date()
+                            }
+                            placeholderText="dd-mm-yyyy"
+                            maxDate={new Date()}
+                            showTimeSelect
+                            timeIntervals={1}
+                            disabled={
+                              ![
+                                ROLES.HIDE_MASTER_SUPER_ADMIN,
+                                ROLES.SUPER_ADMIN,
+                              ].includes(authContext?.user?.roleID?.name)
+                            }
+                            className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5"
+                            onChange={(date) => {
+                              handleInputChange(index, "saleDate", date);
+                            }}
+                          />
+                        </div>
+                      </div>
+                      <div>
+                        <label
+                          htmlFor="reason"
+                          className="block text-sm font-medium text-gray-700 text-left"
+                        >
+                          Reason
+                        </label>
+                        <input
+                          type="text"
+                          name="reason"
+                          id="reason"
+                          value={writeOff[index]?.reason || ""}
+                          onChange={(e) =>
+                            handleInputChange(
+                              index,
+                              e.target.name,
+                              e.target.value
+                            )
+                          }
+                          className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5"
+                          placeholder="Enter a Reason"
+                        />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                {pdfOpen && (
+                  <div className="px-4 py-6 sm:px-8 bg-white shadow rounded-xl border mt-4">
+                    <h2 className="text-xl font-bold text-gray-800 mb-2">
+                      Download WriteOff Invoice
+                    </h2>
+                    <p className="text-sm text-gray-600 mb-4">
+                      Would you like to download the invoice bill for the
+                      current writeoff?
+                    </p>
+
+                    <div className="flex justify-start gap-2">
+                      <LoaderButton
+                        loading={pdfBtnLoader}
+                        onClick={pdfDownload}
+                      >
+                        Download PDF
+                      </LoaderButton>
+                    </div>
                   </div>
                 )}
-                <div className="bg-gray-50 px-4 py-3 sm:flex sm:flex-row-reverse sm:px-6">
+
+                <div className="bg-gray-50 px-4 py-3 sm:flex sm:flex-row-reverse rounded-xl sm:px-6 mt-2">
                   <button
                     type="button"
                     className="inline-flex w-full justify-center rounded-md bg-blue-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-500 sm:ml-3 sm:w-auto"
-                    onClick={addSale}
+                    onClick={addWriteOff}
                   >
-                    Add
+                    Add WriteOff
                   </button>
                   <button
                     type="button"
                     className="mt-3 inline-flex w-full justify-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 sm:mt-0 sm:w-auto"
                     onClick={() => {
                       handlePageUpdate();
-                      addSaleModalSetting();
+                      addWriteOffModalSetting();
                     }}
                     ref={cancelButtonRef}
                   >
                     Cancel
                   </button>
                 </div>
+
                 {showBrandModal && (
                   <AddBrand
                     addBrandModalSetting={() => {

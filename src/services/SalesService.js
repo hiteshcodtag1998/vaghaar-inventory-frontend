@@ -12,7 +12,7 @@ const SalesService = {
     }),
 
   update: (data, role, requestBy) =>
-    BaseService.request(`/sales/update`, "POST", data, {
+    BaseService.request(`${prefix}/update`, "POST", data, {
       headers: {
         role,
         requestBy,
