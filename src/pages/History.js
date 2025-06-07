@@ -65,9 +65,9 @@ function History() {
       <div className="flex flex-col gap-7 w-full md:w-11/12">
         <header className="flex items-center gap-3 border-b border-gray-300 pb-3">
           <MdHistory className="text-blue-600 w-5 h-5" />
-          <h1 className="text-2xl font-extrabold text-gray-900 select-none">
+          <span className="text-lg font-semibold text-gray-900 whitespace-nowrap">
             History
-          </h1>
+          </span>
         </header>
 
         {history.length > 0 ? (
