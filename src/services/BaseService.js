@@ -11,13 +11,20 @@ const axiosInstance = axios.create({
   },
 });
 
+// Hold a navigation callback
+let navigateToLogin = null;
+
 const BaseService = {
+  setNavigateToLogin: (navigateFn) => {
+    navigateToLogin = navigateFn;
+  },
+
   request: async (url, method = "GET", data = null, options = {}) => {
     try {
       const response = await axiosInstance({
         url,
         method,
-        data,
+        ...(method === "GET" ? {} : { data }),
         ...options,
         headers: {
           ...axiosInstance.defaults.headers,
@@ -27,15 +34,21 @@ const BaseService = {
 
       return response.data;
     } catch (error) {
+      console.error("Full error:", error);
+      console.error("Response data:", error?.response?.data);
+
       const message =
         error?.response?.data?.message ||
         error?.message ||
         "Something went wrong";
 
-      console.log("Message", message);
-
-      if (message === "Access Denied. No token provided.") {
-        window.location.replace("/login");
+      if (
+        message === "Access Denied. No token provided." ||
+        message === "Unauthorized"
+      ) {
+        if (typeof navigateToLogin === "function") {
+          navigateToLogin();
+        }
       }
 
       throw new Error(message);

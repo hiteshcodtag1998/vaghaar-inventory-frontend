@@ -1,14 +1,20 @@
 import { useEffect, useState } from "react";
-import { BrowserRouter, Routes } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import AuthContext from "./AuthContext";
 import AuthService from "./services/AuthService";
 import AppRoutes from "./routes/AppRoutes";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import BaseService from "./services/BaseService";
 
 const App = () => {
   const [user, setUser] = useState(null);
   const [loader, setLoader] = useState(true);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    BaseService.setNavigateToLogin(() => navigate("/login"));
+  }, [navigate]);
 
   useEffect(() => {
     const initializeAuth = async () => {
@@ -36,7 +42,6 @@ const App = () => {
   };
 
   const authContextValue = { user, signin, signout };
-  console.log("authContextValue", authContextValue);
 
   if (loader) {
     return (
@@ -48,10 +53,8 @@ const App = () => {
 
   return (
     <AuthContext.Provider value={authContextValue}>
-      <BrowserRouter>
-        <AppRoutes />
-        <ToastContainer />
-      </BrowserRouter>
+      <AppRoutes />
+      <ToastContainer />
     </AuthContext.Provider>
   );
 };

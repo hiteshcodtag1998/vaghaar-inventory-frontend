@@ -30,11 +30,11 @@ function Login() {
     setLoading(true);
 
     try {
-      const user = await AuthService.login(form);
+      await AuthService.login(form);
       toastMessage("Login successful!", TOAST_TYPE.TYPE_SUCCESS);
 
-      // Store user in context, no token in localStorage
-      authContext.signin(user, () => {
+      const data = await AuthService.me(); // get user data fresh
+      authContext.signin(data.data.user, () => {
         navigate("/");
       });
     } catch (error) {
