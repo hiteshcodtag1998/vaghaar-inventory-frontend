@@ -8,6 +8,7 @@ import {
 } from "@heroicons/react/24/outline";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import AuthContext from "../AuthContext";
+import vaghaarLogo from "../assets/vaghaar-logo.svg";
 
 const navigation = [
   { name: "Dashboard", href: "/" },
@@ -49,9 +50,7 @@ export default function Header() {
   const isActive = (href) => location.pathname === href;
 
   const handleSignOut = () => {
-    signout(() => {
-      navigate("/login");
-    });
+    signout(() => navigate("/login"));
   };
 
   const NavLinkItem = ({ item }) => (
@@ -62,53 +61,57 @@ export default function Header() {
         isActive(item.href)
           ? "bg-yellow-600 text-white"
           : "text-gray-300 hover:bg-gray-700 hover:text-white",
-        "block rounded-md px-3 py-2 text-base font-medium transition-colors duration-200"
+        "block rounded-md px-3 py-2 text-base font-medium transition-all"
       )}
-      aria-current={isActive(item.href) ? "page" : undefined}
     >
       {item.name}
     </Disclosure.Button>
   );
 
   return (
-    <Disclosure as="nav" className="bg-gray-900 sticky top-0 z-50 shadow-md">
+    <Disclosure
+      as="nav"
+      className="bg-forest sticky top-0 z-50 shadow-md text-white border-b border-gray-200"
+    >
       {({ open }) => (
         <>
-          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-            <div className="flex h-16 items-center justify-between">
-              {/* Logo / Title */}
-              <div className="flex items-center">
-                <span className="text-lg sm:text-xl font-bold text-yellow-400 select-none">
-                  Vaghaar Inventory
-                </span>
+          <div className="max-w-full px-4">
+            <div className="flex h-20 items-center justify-between">
+              <div className="flex items-center gap-4">
+                <img
+                  src={vaghaarLogo}
+                  alt="Vaghaar Logo"
+                  className="w-12 h-12 object-contain"
+                />
+                <div className="flex flex-col select-none">
+                  <span className="text-lg sm:text-xl font-bold">
+                    Inventory Management
+                  </span>
+                </div>
               </div>
 
-              {/* Desktop Icons */}
               <div className="hidden md:flex items-center space-x-5">
                 <button
                   type="button"
-                  aria-label="View notifications"
-                  className="rounded-full p-2 text-gray-400 hover:text-yellow-400 focus:outline-none focus:ring-2 focus:ring-yellow-400"
+                  title="Notifications"
+                  className="text-gray-500 hover:text-yellow-500"
+                  aria-label="Notifications"
                 >
                   <BellIcon className="h-6 w-6" />
                 </button>
-
                 <button
                   type="button"
                   onClick={handleSignOut}
+                  title="Sign Out"
+                  className="text-gray-500 hover:text-yellow-500"
                   aria-label="Sign out"
-                  className="rounded-full p-2 text-gray-400 hover:text-yellow-400 focus:outline-none focus:ring-2 focus:ring-yellow-400"
                 >
                   <ArrowRightOnRectangleIcon className="h-6 w-6" />
                 </button>
               </div>
 
-              {/* Mobile menu button */}
-              <div className="-mr-2 flex md:hidden">
-                <Disclosure.Button
-                  aria-label={open ? "Close menu" : "Open menu"}
-                  className="inline-flex items-center justify-center rounded-md p-2 text-gray-400 hover:bg-gray-700 hover:text-yellow-400 focus:outline-none focus:ring-2 focus:ring-yellow-400"
-                >
+              <div className="md:hidden">
+                <Disclosure.Button className="inline-flex items-center justify-center p-2 text-gray-500 hover:text-yellow-500">
                   {open ? (
                     <XMarkIcon className="h-6 w-6" />
                   ) : (
@@ -119,43 +122,30 @@ export default function Header() {
             </div>
           </div>
 
-          {/* Mobile Menu */}
-          <Disclosure.Panel className="md:hidden bg-gray-900">
-            <div className="space-y-1 px-2 pb-3 pt-2">
+          <Disclosure.Panel className="md:hidden bg-white border-t border-gray-200">
+            <div className="px-4 py-3 space-y-1">
               {navigation.map((item) => (
                 <NavLinkItem key={item.name} item={item} />
               ))}
             </div>
-
-            {/* User Info */}
-            <div className="border-t border-yellow-600 pt-4 pb-3 px-5 flex items-center">
+            <div className="border-t border-gray-200 px-5 py-4 flex items-center gap-3">
               <img
-                className="h-10 w-10 rounded-full border-2 border-yellow-400 object-cover"
                 src={imageUrl}
-                alt={`${firstName} ${lastName} avatar`}
-                loading="lazy"
+                alt={`${firstName} ${lastName}`}
+                className="h-10 w-10 rounded-full border object-cover"
               />
-              <div className="ml-3 flex-1">
-                <p className="text-base font-semibold text-white truncate">
+              <div>
+                <p className="text-gray-900 font-semibold text-sm">
                   {firstName} {lastName}
                 </p>
-                <p className="text-sm text-yellow-300 truncate">{email}</p>
+                <p className="text-gray-500 text-xs truncate">{email}</p>
               </div>
-              <button
-                type="button"
-                aria-label="View notifications"
-                className="p-1 rounded-full text-gray-400 hover:text-yellow-400 focus:outline-none focus:ring-2 focus:ring-yellow-400"
-              >
-                <BellIcon className="h-6 w-6" />
-              </button>
             </div>
-
-            {/* Sign out */}
-            <div className="mt-3 space-y-1 px-5">
+            <div className="px-5 py-3">
               <Disclosure.Button
                 as="button"
                 onClick={handleSignOut}
-                className="block w-full rounded-md bg-yellow-600 px-3 py-2 text-center text-base font-semibold text-white hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-yellow-400"
+                className="w-full text-center rounded-md bg-yellow-600 hover:bg-yellow-700 text-white px-4 py-2 text-sm font-semibold"
               >
                 Sign out
               </Disclosure.Button>

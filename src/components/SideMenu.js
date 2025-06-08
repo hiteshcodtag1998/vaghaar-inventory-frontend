@@ -56,21 +56,21 @@ function SideMenu() {
   const email = user?.email ?? "No email";
 
   return (
-    <div className="h-full flex flex-col">
-      {/* Scrollable Menu Items */}
-      <div className="flex-1 overflow-y-auto p-4">
-        <nav className="space-y-2">
+    <div className="h-full flex flex-col bg-forest text-white">
+      {/* Menu Section */}
+      <div className="flex-1 overflow-y-auto px-4 py-6 space-y-1">
+        <nav className="flex flex-col gap-1">
           {menuItems.map(({ name, to, icon, key }) => {
             const isActive = currentTab === key;
             return (
               <Link
                 key={name}
                 to={to}
-                className={`flex items-center gap-3 rounded-lg px-4 py-2 transition-colors text-sm font-medium
+                className={`flex items-center gap-3 px-4 py-2 rounded-lg text-sm font-medium transition-all
                   ${
                     isActive
-                      ? "bg-yellow-100 text-yellow-600"
-                      : "text-gray-600 hover:bg-gray-100"
+                      ? "bg-yellow-600 text-white shadow"
+                      : "text-gray-300 hover:bg-white/10 hover:text-yellow-400"
                   }
                 `}
               >
@@ -82,19 +82,21 @@ function SideMenu() {
         </nav>
       </div>
 
-      {/* Sticky User Section */}
-      <div className="sticky bottom-0 border-t p-4 flex items-center gap-3 bg-white z-10">
+      {/* User Info Footer */}
+      <div className="sticky bottom-0 w-full border-t border-white/10 px-4 py-4 flex items-center gap-3 bg-[rgb(20,34,23)] z-10">
         <img
           src={`https://eu.ui-avatars.com/api/?name=${encodeURIComponent(
             userName
-          )}&size=250`}
+          )}&size=250&background=142217&color=fff`}
           alt="Avatar"
-          className="h-10 w-10 rounded-full object-cover border"
+          className="h-10 w-10 rounded-full object-cover border border-white"
         />
-        <div className="text-sm">
-          <p className="font-medium text-gray-800">{userName}</p>
-          <p className="text-xs text-gray-500">{roleName}</p>
-          <p className="text-xs text-gray-400 truncate w-40">{email}</p>
+        <div className="overflow-hidden">
+          <p className="text-sm font-semibold text-white truncate">
+            {userName}
+          </p>
+          <p className="text-xs text-gray-400 truncate">{roleName}</p>
+          <p className="text-xs text-gray-500 truncate">{email}</p>
         </div>
       </div>
     </div>
